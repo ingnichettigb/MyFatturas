@@ -15,6 +15,7 @@ import { Route as ClientiRouteImport } from './routes/clienti'
 import { Route as CommesseRouteImport } from './routes/commesse'
 import { Route as ImpostazioniRouteImport } from './routes/impostazioni'
 import { Route as PreventiviIndexRouteImport } from './routes/preventivi.index'
+import { Route as PreventiviIdRouteImport } from './routes/preventivi.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const PreventiviIndexRoute = PreventiviIndexRouteImport.update({
   path: '/preventivi/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreventiviIdRoute = PreventiviIdRouteImport.update({
+  id: '/preventivi/$id',
+  path: '/preventivi/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/clienti': typeof ClientiRoute
   '/commesse': typeof CommesseRoute
   '/impostazioni': typeof ImpostazioniRoute
+  '/preventivi/$id': typeof PreventiviIdRoute
   '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/clienti': typeof ClientiRoute
   '/commesse': typeof CommesseRoute
   '/impostazioni': typeof ImpostazioniRoute
+  '/preventivi/$id': typeof PreventiviIdRoute
   '/preventivi': typeof PreventiviIndexRoute
 }
 export interface FileRoutesById {
@@ -70,14 +78,28 @@ export interface FileRoutesById {
   '/clienti': typeof ClientiRoute
   '/commesse': typeof CommesseRoute
   '/impostazioni': typeof ImpostazioniRoute
+  '/preventivi/$id': typeof PreventiviIdRoute
   '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/clienti' | '/commesse' | '/impostazioni' | '/preventivi/'
+    | '/'
+    | '/auth'
+    | '/clienti'
+    | '/commesse'
+    | '/impostazioni'
+    | '/preventivi/$id'
+    | '/preventivi/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/clienti' | '/commesse' | '/impostazioni' | '/preventivi'
+  to:
+    | '/'
+    | '/auth'
+    | '/clienti'
+    | '/commesse'
+    | '/impostazioni'
+    | '/preventivi/$id'
+    | '/preventivi'
   id:
     | '__root__'
     | '/'
@@ -85,6 +107,7 @@ export interface FileRouteTypes {
     | '/clienti'
     | '/commesse'
     | '/impostazioni'
+    | '/preventivi/$id'
     | '/preventivi/'
   fileRoutesById: FileRoutesById
 }
@@ -94,6 +117,7 @@ export interface RootRouteChildren {
   ClientiRoute: typeof ClientiRoute
   CommesseRoute: typeof CommesseRoute
   ImpostazioniRoute: typeof ImpostazioniRoute
+  PreventiviIdRoute: typeof PreventiviIdRoute
   PreventiviIndexRoute: typeof PreventiviIndexRoute
 }
 
@@ -141,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreventiviIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preventivi/$id': {
+      id: '/preventivi/$id'
+      path: '/preventivi/$id'
+      fullPath: '/preventivi/$id'
+      preLoaderRoute: typeof PreventiviIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -150,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientiRoute: ClientiRoute,
   CommesseRoute: CommesseRoute,
   ImpostazioniRoute: ImpostazioniRoute,
+  PreventiviIdRoute: PreventiviIdRoute,
   PreventiviIndexRoute: PreventiviIndexRoute,
 }
 export const routeTree = rootRouteImport
