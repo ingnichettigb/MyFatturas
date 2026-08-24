@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ClientiRouteImport } from './routes/clienti'
+import { Route as CommesseRouteImport } from './routes/commesse'
+import { Route as ImpostazioniRouteImport } from './routes/impostazioni'
+import { Route as PreventiviIndexRouteImport } from './routes/preventivi.index'
+import { Route as PreventiviIdRouteImport } from './routes/preventivi.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientiRoute = ClientiRouteImport.update({
+  id: '/clienti',
+  path: '/clienti',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommesseRoute = CommesseRouteImport.update({
+  id: '/commesse',
+  path: '/commesse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpostazioniRoute = ImpostazioniRouteImport.update({
+  id: '/impostazioni',
+  path: '/impostazioni',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreventiviIndexRoute = PreventiviIndexRouteImport.update({
+  id: '/preventivi/',
+  path: '/preventivi/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreventiviIdRoute = PreventiviIdRouteImport.update({
+  id: '/preventivi/$id',
+  path: '/preventivi/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/clienti': typeof ClientiRoute
+  '/commesse': typeof CommesseRoute
+  '/impostazioni': typeof ImpostazioniRoute
+  '/preventivi/$id': typeof PreventiviIdRoute
+  '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/clienti': typeof ClientiRoute
+  '/commesse': typeof CommesseRoute
+  '/impostazioni': typeof ImpostazioniRoute
+  '/preventivi/$id': typeof PreventiviIdRoute
+  '/preventivi': typeof PreventiviIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/clienti': typeof ClientiRoute
+  '/commesse': typeof CommesseRoute
+  '/impostazioni': typeof ImpostazioniRoute
+  '/preventivi/$id': typeof PreventiviIdRoute
+  '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/clienti'
+    | '/commesse'
+    | '/impostazioni'
+    | '/preventivi/$id'
+    | '/preventivi/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/clienti'
+    | '/commesse'
+    | '/impostazioni'
+    | '/preventivi/$id'
+    | '/preventivi'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/clienti'
+    | '/commesse'
+    | '/impostazioni'
+    | '/preventivi/$id'
+    | '/preventivi/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
+  ClientiRoute: typeof ClientiRoute
+  CommesseRoute: typeof CommesseRoute
+  ImpostazioniRoute: typeof ImpostazioniRoute
+  PreventiviIdRoute: typeof PreventiviIdRoute
+  PreventiviIndexRoute: typeof PreventiviIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +130,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clienti': {
+      id: '/clienti'
+      path: '/clienti'
+      fullPath: '/clienti'
+      preLoaderRoute: typeof ClientiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/commesse': {
+      id: '/commesse'
+      path: '/commesse'
+      fullPath: '/commesse'
+      preLoaderRoute: typeof CommesseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/impostazioni': {
+      id: '/impostazioni'
+      path: '/impostazioni'
+      fullPath: '/impostazioni'
+      preLoaderRoute: typeof ImpostazioniRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preventivi/': {
+      id: '/preventivi/'
+      path: '/preventivi'
+      fullPath: '/preventivi/'
+      preLoaderRoute: typeof PreventiviIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preventivi/$id': {
+      id: '/preventivi/$id'
+      path: '/preventivi/$id'
+      fullPath: '/preventivi/$id'
+      preLoaderRoute: typeof PreventiviIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
+  ClientiRoute: ClientiRoute,
+  CommesseRoute: CommesseRoute,
+  ImpostazioniRoute: ImpostazioniRoute,
+  PreventiviIdRoute: PreventiviIdRoute,
+  PreventiviIndexRoute: PreventiviIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
