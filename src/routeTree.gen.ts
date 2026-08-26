@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ClientiRouteImport } from './routes/clienti'
 import { Route as CommesseRouteImport } from './routes/commesse'
 import { Route as ImpostazioniRouteImport } from './routes/impostazioni'
+import { Route as FattureIndexRouteImport } from './routes/fatture.index'
 import { Route as PreventiviIndexRouteImport } from './routes/preventivi.index'
 import { Route as PreventiviIdRouteImport } from './routes/preventivi.$id'
 
@@ -42,6 +43,11 @@ const ImpostazioniRoute = ImpostazioniRouteImport.update({
   path: '/impostazioni',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FattureIndexRoute = FattureIndexRouteImport.update({
+  id: '/fatture/',
+  path: '/fatture/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PreventiviIndexRoute = PreventiviIndexRouteImport.update({
   id: '/preventivi/',
   path: '/preventivi/',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/commesse': typeof CommesseRoute
   '/impostazioni': typeof ImpostazioniRoute
   '/preventivi/$id': typeof PreventiviIdRoute
+  '/fatture/': typeof FattureIndexRoute
   '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/commesse': typeof CommesseRoute
   '/impostazioni': typeof ImpostazioniRoute
   '/preventivi/$id': typeof PreventiviIdRoute
+  '/fatture': typeof FattureIndexRoute
   '/preventivi': typeof PreventiviIndexRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/commesse': typeof CommesseRoute
   '/impostazioni': typeof ImpostazioniRoute
   '/preventivi/$id': typeof PreventiviIdRoute
+  '/fatture/': typeof FattureIndexRoute
   '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/commesse'
     | '/impostazioni'
     | '/preventivi/$id'
+    | '/fatture/'
     | '/preventivi/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/commesse'
     | '/impostazioni'
     | '/preventivi/$id'
+    | '/fatture'
     | '/preventivi'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/commesse'
     | '/impostazioni'
     | '/preventivi/$id'
+    | '/fatture/'
     | '/preventivi/'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   CommesseRoute: typeof CommesseRoute
   ImpostazioniRoute: typeof ImpostazioniRoute
   PreventiviIdRoute: typeof PreventiviIdRoute
+  FattureIndexRoute: typeof FattureIndexRoute
   PreventiviIndexRoute: typeof PreventiviIndexRoute
 }
 
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImpostazioniRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fatture/': {
+      id: '/fatture/'
+      path: '/fatture'
+      fullPath: '/fatture/'
+      preLoaderRoute: typeof FattureIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/preventivi/': {
       id: '/preventivi/'
       path: '/preventivi'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommesseRoute: CommesseRoute,
   ImpostazioniRoute: ImpostazioniRoute,
   PreventiviIdRoute: PreventiviIdRoute,
+  FattureIndexRoute: FattureIndexRoute,
   PreventiviIndexRoute: PreventiviIndexRoute,
 }
 export const routeTree = rootRouteImport
