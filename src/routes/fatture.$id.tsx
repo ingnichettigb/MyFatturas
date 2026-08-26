@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { RigheEditor, type RigaForm } from "@/components/RigheEditor";
 import { DocumentoStampa } from "@/components/DocumentoStampa";
+import { AzioniDocumento, useDocumento } from "@/hooks/useDocumento";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,6 +75,9 @@ function FatturaDetail() {
   });
 
   const [t, setT] = useState<Fattura | null>(null);
+  const doc = useDocumento(() =>
+    t ? `${t.tipo === "nota" ? "Nota onoraria" : "Preavviso"} ${t.numero}` : "Documento",
+  );
   const [righe, setRighe] = useState<RigaForm[]>([]);
 
   useEffect(() => {
@@ -194,13 +198,14 @@ function FatturaDetail() {
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="size-4" /> Stampa
           </Button>
+          <AzioniDocumento esportaPdf={doc.esportaPdf} salvaFile={doc.salvaFile} />
           <Button variant="secondary" onClick={() => salva.mutate()} disabled={salva.isPending}>
             <Save className="size-4" /> Salva
           </Button>
         </>
       }
     >
-      <Tabs defaultValue="dati">
+      <Tabs value={doc.tab} onValueChange={doc.setTab}>
         <TabsList className="no-print">
           <TabsTrigger value="dati">Compilazione</TabsTrigger>
           <TabsTrigger value="stampa">Anteprima documento</TabsTrigger>
@@ -475,6 +480,7 @@ function FatturaDetail() {
         </TabsContent>
 
         <TabsContent value="stampa">
+          <div ref={doc.docRef}>
           <DocumentoStampa
             imp={imp}
             cliente={cliente}
@@ -497,6 +503,7 @@ function FatturaDetail() {
             totali={totali}
             riferimenti={[{ label: "Vs. ordine", value: t.numero_ordine }]}
           />
+          </div>
         </TabsContent>
       </Tabs>
     </AppShell>
