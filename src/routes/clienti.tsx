@@ -18,6 +18,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { ImportClientiDialog } from "@/components/ImportClientiDialog";
 import { useClienti } from "@/lib/queries";
 import type { Cliente } from "@/lib/ngb";
 
@@ -131,9 +132,12 @@ function ClientiPage() {
     <AppShell
       title="Clienti"
       actions={
-        <Button onClick={() => apri()}>
-          <Plus className="size-4" /> Nuovo cliente
-        </Button>
+        <>
+          <ImportClientiDialog />
+          <Button onClick={() => apri()}>
+            <Plus className="size-4" /> Nuovo cliente
+          </Button>
+        </>
       }
     >
       <Card>
