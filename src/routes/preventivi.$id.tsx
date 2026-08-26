@@ -77,6 +77,7 @@ function PreventivoDetail() {
   });
 
   const [t, setT] = useState<Preventivo | null>(null);
+  const doc = useDocumento(() => (t ? `Preventivo ${t.numero}` : "Preventivo"));
   const [righe, setRighe] = useState<RigaForm[]>([]);
 
   useEffect(() => {
@@ -557,6 +558,7 @@ function PreventivoDetail() {
               { label: "Vs. riferimento", value: t.numero_ordine },
             ]}
           />
+          </div>
         </TabsContent>
       </Tabs>
     </AppShell>

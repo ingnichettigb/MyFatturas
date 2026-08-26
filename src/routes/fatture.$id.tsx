@@ -75,6 +75,9 @@ function FatturaDetail() {
   });
 
   const [t, setT] = useState<Fattura | null>(null);
+  const doc = useDocumento(() =>
+    t ? `${t.tipo === "nota" ? "Nota onoraria" : "Preavviso"} ${t.numero}` : "Documento",
+  );
   const [righe, setRighe] = useState<RigaForm[]>([]);
 
   useEffect(() => {
