@@ -87,8 +87,9 @@ export function ImportClientiDialog() {
   const [mappa, setMappa] = useState<Record<Campo, string>>({} as Record<Campo, string>);
 
   function caricaFoglio(book: XLSX.WorkBook, nome: string) {
-    const dati = XLSX.utils.sheet_to_json<Riga>(book.Sheets[nome], { defval: "" });
-    const cols = dati.length ? Object.keys(dati[0]) : [];
+    const sheet = book.Sheets[nome];
+    const dati = sheet ? XLSX.utils.sheet_to_json<Riga>(sheet, { defval: "" }) : [];
+    const cols = dati[0] ? Object.keys(dati[0]) : [];
     setFoglio(nome);
     setColonne(cols);
     setRighe(dati);
@@ -99,7 +100,7 @@ export function ImportClientiDialog() {
     const book = XLSX.read(await file.arrayBuffer(), { type: "array" });
     setWb(book);
     setFogli(book.SheetNames);
-    caricaFoglio(book, book.SheetNames[0]);
+    caricaFoglio(book, book.SheetNames[0] ?? "");
   }
 
   const anteprima = righe
