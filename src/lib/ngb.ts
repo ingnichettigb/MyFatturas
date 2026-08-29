@@ -98,15 +98,25 @@ export function prossimoNumero(
   anno: number,
   esistenti: { numero: string; anno: number }[],
 ): string {
+  const aa = suffisso(anno);
+  if (tipo === "preventivo") {
+    // Formato preventivi: PRE-AA-00 (progressivo annuale)
+    const max = esistenti
+      .filter((e) => e.anno === anno)
+      .reduce((m, e) => {
+        const match = e.numero.match(/PRE-(\d{2})-(\d+)/i);
+        return match && match[1] === aa ? Math.max(m, Number(match[2])) : m;
+      }, 0);
+    return `PRE-${aa}-${String(max + 1).padStart(2, "0")}`;
+  }
   const max = esistenti
     .filter((e) => e.anno === anno)
     .reduce((m, e) => Math.max(m, progressivoDa(e.numero)), 0);
   const p = String(max + 1).padStart(2, "0");
-  const aa = suffisso(anno);
   if (tipo === "nota") return `${p}/${aa}`;
-  if (tipo === "preavviso") return `P${aa}/${p}`;
-  return `P${p}/${aa}`;
+  return `P${aa}/${p}`;
 }
+
 
 export const STATI_PREVENTIVO = [
   { value: "bozza", label: "Bozza" },
