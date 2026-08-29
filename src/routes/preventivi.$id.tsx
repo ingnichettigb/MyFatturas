@@ -265,6 +265,22 @@ function PreventivoDetail() {
             <Printer className="size-4" /> Stampa
           </Button>
           <AzioniDocumento esportaPdf={doc.esportaPdf} salvaFile={doc.salvaFile} />
+          <InviaMailDialog
+            scaricaPdf={doc.esportaPdf}
+            dati={{
+              destinatario: cliente?.email ?? "",
+              ragioneSociale: cliente?.ragione_sociale ?? "",
+              referente: cliente?.referente ?? "",
+              numeroDoc: t.numero,
+              data: t.data,
+              oggetto: t.oggetto,
+              totale: euro(totali.totale),
+              validita: t.validita,
+              firma: imp.studio_nome,
+              telefono: imp.studio_tel,
+            }}
+          />
+
           <Button
             variant="outline"
             onClick={() => genera.mutate("preavviso")}
