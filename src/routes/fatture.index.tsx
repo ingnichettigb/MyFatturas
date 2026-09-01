@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useClienti, useFatture, useImpostazioni } from "@/lib/queries";
 import {
@@ -62,6 +63,23 @@ function FatturePage() {
   const { data: fatture = [], isLoading } = useFatture();
   const { data: clienti = [] } = useClienti();
   const { data: imp } = useImpostazioni();
+  const { sorted, sort, onSort } = useSort(
+    fatture.map((f) => ({
+      ...f,
+      clienteNome: clienti.find((c) => c.id === f.cliente_id)?.ragione_sociale ?? "",
+      tipoLabel: f.tipo === "nota" ? "Nota" : "Preavviso",
+      statoLabel: labelStato(STATI_FATTURA, f.stato),
+    })),
+    {
+      numero: (f) => f.numero,
+      tipo: (f) => f.tipoLabel,
+      data: (f) => f.data,
+      cliente: (f) => f.clienteNome,
+      scadenza: (f) => f.scadenza,
+      totale: (f) => f.totale,
+      stato: (f) => f.statoLabel,
+    },
+  );
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
