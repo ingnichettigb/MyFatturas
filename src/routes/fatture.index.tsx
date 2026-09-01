@@ -139,7 +139,7 @@ function FatturePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const lista = fatture.filter((f) => filtro === "tutti" || f.stato === filtro);
+  const lista = sorted.filter((f) => filtro === "tutti" || f.stato === filtro);
 
   return (
     <AppShell
