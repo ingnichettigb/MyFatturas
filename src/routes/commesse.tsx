@@ -65,6 +65,20 @@ const vuoto = {
 function CommessePage() {
   const { data: commesse = [], isLoading } = useCommesse();
   const { data: clienti = [] } = useClienti();
+  const { sorted, sort, onSort } = useSort(
+    commesse.map((c) => ({
+      ...c,
+      clienteNome: clienti.find((k) => k.id === c.cliente_id)?.ragione_sociale ?? "",
+      statoLabel: STATI.find((s) => s.value === c.stato)?.label ?? c.stato,
+    })),
+    {
+      codice: (c) => c.codice,
+      descrizione: (c) => c.descrizione,
+      cliente: (c) => c.clienteNome,
+      disegno: (c) => c.disegno,
+      stato: (c) => c.statoLabel,
+    },
+  );
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Commessa | null>(null);
