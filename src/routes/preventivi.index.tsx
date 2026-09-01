@@ -120,7 +120,7 @@ function PreventiviPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const lista = preventivi.filter((p) => filtro === "tutti" || p.stato === filtro);
+  const lista = sorted.filter((p) => filtro === "tutti" || p.stato === filtro);
 
   return (
     <AppShell

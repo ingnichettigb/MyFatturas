@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
 import { ImportClientiDialog } from "@/components/ImportClientiDialog";
