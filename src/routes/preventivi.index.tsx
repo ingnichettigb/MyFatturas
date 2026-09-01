@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useClienti, useCommesse, useImpostazioni, usePreventivi } from "@/lib/queries";
 import { dataIt, euro, labelStato, numero, oggi, prossimoNumero, STATI_PREVENTIVO } from "@/lib/ngb";
