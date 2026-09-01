@@ -151,17 +151,29 @@ function PreventiviPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-28">Numero</TableHead>
-                <TableHead className="w-28">Data</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Oggetto</TableHead>
-                <TableHead className="w-20 text-right">Ore</TableHead>
-                <TableHead className="w-28 text-right">Totale</TableHead>
-                <TableHead className="w-28">Stato</TableHead>
+                <SortableHead label="Numero" sortKey="numero" sort={sort} onSort={onSort} />
+                <SortableHead label="Data" sortKey="data" sort={sort} onSort={onSort} />
+                <SortableHead label="Cliente" sortKey="cliente" sort={sort} onSort={onSort} />
+                <SortableHead label="Oggetto" sortKey="oggetto" sort={sort} onSort={onSort} />
+                <SortableHead
+                  label="Ore"
+                  sortKey="ore"
+                  sort={sort}
+                  onSort={onSort}
+                  className="w-20 text-right"
+                />
+                <SortableHead
+                  label="Totale"
+                  sortKey="totale"
+                  sort={sort}
+                  onSort={onSort}
+                  className="w-28 text-right"
+                />
+                <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lista.map((p) => (
+              {sorted.map((p) => (
                 <TableRow key={p.id} className="cursor-pointer">
                   <TableCell className="num font-medium">
                     <Link to="/preventivi/$id" params={{ id: p.id }} className="hover:underline">
@@ -169,9 +181,7 @@ function PreventiviPage() {
                     </Link>
                   </TableCell>
                   <TableCell className="num">{dataIt(p.data)}</TableCell>
-                  <TableCell>
-                    {clienti.find((c) => c.id === p.cliente_id)?.ragione_sociale ?? "—"}
-                  </TableCell>
+                  <TableCell>{p.clienteNome || "—"}</TableCell>
                   <TableCell className="max-w-[24rem] truncate text-muted-foreground">
                     {p.oggetto || "—"}
                   </TableCell>
@@ -179,7 +189,7 @@ function PreventiviPage() {
                   <TableCell className="num text-right">{euro(p.totale)}</TableCell>
                   <TableCell>
                     <Badge variant={p.stato === "accettato" ? "default" : "secondary"}>
-                      {labelStato(STATI_PREVENTIVO, p.stato)}
+                      {p.statoLabel}
                     </Badge>
                   </TableCell>
                 </TableRow>
