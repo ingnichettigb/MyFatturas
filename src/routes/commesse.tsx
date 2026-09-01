@@ -148,27 +148,23 @@ function CommessePage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Codice</TableHead>
-                <TableHead>Descrizione</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Disegno</TableHead>
-                <TableHead>Stato</TableHead>
+                <SortableHead label="Codice" sortKey="codice" sort={sort} onSort={onSort} />
+                <SortableHead label="Descrizione" sortKey="descrizione" sort={sort} onSort={onSort} />
+                <SortableHead label="Cliente" sortKey="cliente" sort={sort} onSort={onSort} />
+                <SortableHead label="Disegno" sortKey="disegno" sort={sort} onSort={onSort} />
+                <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} />
                 <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {commesse.map((c) => (
+              {sorted.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell className="num font-medium">{c.codice}</TableCell>
                   <TableCell className="max-w-[26rem] truncate">{c.descrizione || "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {clienti.find((k) => k.id === c.cliente_id)?.ragione_sociale ?? "—"}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{c.clienteNome || "—"}</TableCell>
                   <TableCell className="num">{c.disegno || "—"}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">
-                      {STATI.find((s) => s.value === c.stato)?.label ?? c.stato}
-                    </Badge>
+                    <Badge variant="secondary">{c.statoLabel}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => apri(c)}>
