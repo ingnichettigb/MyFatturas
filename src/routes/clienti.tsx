@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
 import { ImportClientiDialog } from "@/components/ImportClientiDialog";
 import { useClienti } from "@/lib/queries";
@@ -56,6 +57,12 @@ const vuoto = {
 
 function ClientiPage() {
   const { data: clienti = [], isLoading } = useClienti();
+  const { sorted, sort, onSort } = useSort(clienti, {
+    ragione: (c) => c.ragione_sociale,
+    sede: (c) => [c.cap, c.citta, c.provincia].filter(Boolean).join(" "),
+    fiscale: (c) => c.piva || c.cf || "",
+    sdi: (c) => c.sdi || "",
+  });
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Cliente | null>(null);
@@ -145,15 +152,15 @@ function ClientiPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Ragione sociale</TableHead>
-                <TableHead>Sede</TableHead>
-                <TableHead>P.IVA / C.F.</TableHead>
-                <TableHead>SDI</TableHead>
+                <SortableHead label="Ragione sociale" sortKey="ragione" sort={sort} onSort={onSort} />
+                <SortableHead label="Sede" sortKey="sede" sort={sort} onSort={onSort} />
+                <SortableHead label="P.IVA / C.F." sortKey="fiscale" sort={sort} onSort={onSort} />
+                <SortableHead label="SDI" sortKey="sdi" sort={sort} onSort={onSort} />
                 <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clienti.map((c) => (
+              {sorted.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.ragione_sociale}</TableCell>
                   <TableCell className="text-muted-foreground">

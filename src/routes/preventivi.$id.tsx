@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { RigheEditor, type RigaForm } from "@/components/RigheEditor";
 import { DocumentoStampa } from "@/components/DocumentoStampa";
+import { InviaMailDialog } from "@/components/InviaMailDialog";
 import { AzioniDocumento, useDocumento } from "@/hooks/useDocumento";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

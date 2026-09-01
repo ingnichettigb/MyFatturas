@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useClienti, useFatture, useImpostazioni } from "@/lib/queries";
 import {
@@ -62,6 +63,23 @@ function FatturePage() {
   const { data: fatture = [], isLoading } = useFatture();
   const { data: clienti = [] } = useClienti();
   const { data: imp } = useImpostazioni();
+  const { sorted, sort, onSort } = useSort(
+    fatture.map((f) => ({
+      ...f,
+      clienteNome: clienti.find((c) => c.id === f.cliente_id)?.ragione_sociale ?? "",
+      tipoLabel: f.tipo === "nota" ? "Nota" : "Preavviso",
+      statoLabel: labelStato(STATI_FATTURA, f.stato),
+    })),
+    {
+      numero: (f) => f.numero,
+      tipo: (f) => f.tipoLabel,
+      data: (f) => f.data,
+      cliente: (f) => f.clienteNome,
+      scadenza: (f) => f.scadenza,
+      totale: (f) => f.totale,
+      stato: (f) => f.statoLabel,
+    },
+  );
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -121,7 +139,7 @@ function FatturePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const lista = fatture.filter((f) => filtro === "tutti" || f.stato === filtro);
+  const lista = sorted.filter((f) => filtro === "tutti" || f.stato === filtro);
 
   return (
     <AppShell
@@ -152,13 +170,25 @@ function FatturePage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-28">Numero</TableHead>
-                <TableHead className="w-24">Tipo</TableHead>
-                <TableHead className="w-28">Data</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead className="w-28">Scadenza</TableHead>
-                <TableHead className="w-28 text-right">Totale</TableHead>
-                <TableHead className="w-28">Stato</TableHead>
+                <SortableHead label="Numero" sortKey="numero" sort={sort} onSort={onSort} className="w-28" />
+                <SortableHead label="Tipo" sortKey="tipo" sort={sort} onSort={onSort} className="w-24" />
+                <SortableHead label="Data" sortKey="data" sort={sort} onSort={onSort} className="w-28" />
+                <SortableHead label="Cliente" sortKey="cliente" sort={sort} onSort={onSort} />
+                <SortableHead
+                  label="Scadenza"
+                  sortKey="scadenza"
+                  sort={sort}
+                  onSort={onSort}
+                  className="w-28"
+                />
+                <SortableHead
+                  label="Totale"
+                  sortKey="totale"
+                  sort={sort}
+                  onSort={onSort}
+                  className="w-28 text-right"
+                />
+                <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -169,18 +199,14 @@ function FatturePage() {
                       {f.numero}
                     </Link>
                   </TableCell>
-                  <TableCell className="label-tec">
-                    {f.tipo === "nota" ? "Nota" : "Preavviso"}
-                  </TableCell>
+                  <TableCell className="label-tec">{f.tipoLabel}</TableCell>
                   <TableCell className="num">{dataIt(f.data)}</TableCell>
-                  <TableCell>
-                    {clienti.find((c) => c.id === f.cliente_id)?.ragione_sociale ?? "—"}
-                  </TableCell>
+                  <TableCell>{f.clienteNome || "—"}</TableCell>
                   <TableCell className="num">{dataIt(f.scadenza)}</TableCell>
                   <TableCell className="num text-right">{euro(f.totale)}</TableCell>
                   <TableCell>
                     <Badge variant={f.stato === "pagata" ? "default" : "secondary"}>
-                      {labelStato(STATI_FATTURA, f.stato)}
+                      {f.statoLabel}
                     </Badge>
                   </TableCell>
                 </TableRow>

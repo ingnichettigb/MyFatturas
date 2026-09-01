@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useClienti, useCommesse, useImpostazioni, usePreventivi } from "@/lib/queries";
 import { dataIt, euro, labelStato, numero, oggi, prossimoNumero, STATI_PREVENTIVO } from "@/lib/ngb";
@@ -53,6 +54,22 @@ function PreventiviPage() {
   const { data: clienti = [] } = useClienti();
   const { data: commesse = [] } = useCommesse();
   const { data: imp } = useImpostazioni();
+  const { sorted, sort, onSort } = useSort(
+    preventivi.map((p) => ({
+      ...p,
+      clienteNome: clienti.find((c) => c.id === p.cliente_id)?.ragione_sociale ?? "",
+      statoLabel: labelStato(STATI_PREVENTIVO, p.stato),
+    })),
+    {
+      numero: (p) => p.numero,
+      data: (p) => p.data,
+      cliente: (p) => p.clienteNome,
+      oggetto: (p) => p.oggetto,
+      ore: (p) => p.totale_ore,
+      totale: (p) => p.totale,
+      stato: (p) => p.statoLabel,
+    },
+  );
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -103,7 +120,7 @@ function PreventiviPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const lista = preventivi.filter((p) => filtro === "tutti" || p.stato === filtro);
+  const lista = sorted.filter((p) => filtro === "tutti" || p.stato === filtro);
 
   return (
     <AppShell
@@ -134,17 +151,29 @@ function PreventiviPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-28">Numero</TableHead>
-                <TableHead className="w-28">Data</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Oggetto</TableHead>
-                <TableHead className="w-20 text-right">Ore</TableHead>
-                <TableHead className="w-28 text-right">Totale</TableHead>
-                <TableHead className="w-28">Stato</TableHead>
+                <SortableHead label="Numero" sortKey="numero" sort={sort} onSort={onSort} />
+                <SortableHead label="Data" sortKey="data" sort={sort} onSort={onSort} />
+                <SortableHead label="Cliente" sortKey="cliente" sort={sort} onSort={onSort} />
+                <SortableHead label="Oggetto" sortKey="oggetto" sort={sort} onSort={onSort} />
+                <SortableHead
+                  label="Ore"
+                  sortKey="ore"
+                  sort={sort}
+                  onSort={onSort}
+                  className="w-20 text-right"
+                />
+                <SortableHead
+                  label="Totale"
+                  sortKey="totale"
+                  sort={sort}
+                  onSort={onSort}
+                  className="w-28 text-right"
+                />
+                <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lista.map((p) => (
+              {sorted.map((p) => (
                 <TableRow key={p.id} className="cursor-pointer">
                   <TableCell className="num font-medium">
                     <Link to="/preventivi/$id" params={{ id: p.id }} className="hover:underline">
@@ -152,9 +181,7 @@ function PreventiviPage() {
                     </Link>
                   </TableCell>
                   <TableCell className="num">{dataIt(p.data)}</TableCell>
-                  <TableCell>
-                    {clienti.find((c) => c.id === p.cliente_id)?.ragione_sociale ?? "—"}
-                  </TableCell>
+                  <TableCell>{p.clienteNome || "—"}</TableCell>
                   <TableCell className="max-w-[24rem] truncate text-muted-foreground">
                     {p.oggetto || "—"}
                   </TableCell>
@@ -162,7 +189,7 @@ function PreventiviPage() {
                   <TableCell className="num text-right">{euro(p.totale)}</TableCell>
                   <TableCell>
                     <Badge variant={p.stato === "accettato" ? "default" : "secondary"}>
-                      {labelStato(STATI_PREVENTIVO, p.stato)}
+                      {p.statoLabel}
                     </Badge>
                   </TableCell>
                 </TableRow>
