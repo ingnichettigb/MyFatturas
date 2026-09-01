@@ -54,6 +54,22 @@ function PreventiviPage() {
   const { data: clienti = [] } = useClienti();
   const { data: commesse = [] } = useCommesse();
   const { data: imp } = useImpostazioni();
+  const { sorted, sort, onSort } = useSort(
+    preventivi.map((p) => ({
+      ...p,
+      clienteNome: clienti.find((c) => c.id === p.cliente_id)?.ragione_sociale ?? "",
+      statoLabel: labelStato(STATI_PREVENTIVO, p.stato),
+    })),
+    {
+      numero: (p) => p.numero,
+      data: (p) => p.data,
+      cliente: (p) => p.clienteNome,
+      oggetto: (p) => p.oggetto,
+      ore: (p) => p.totale_ore,
+      totale: (p) => p.totale,
+      stato: (p) => p.statoLabel,
+    },
+  );
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
