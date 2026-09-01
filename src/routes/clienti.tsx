@@ -152,15 +152,15 @@ function ClientiPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Ragione sociale</TableHead>
-                <TableHead>Sede</TableHead>
-                <TableHead>P.IVA / C.F.</TableHead>
-                <TableHead>SDI</TableHead>
+                <SortableHead label="Ragione sociale" sortKey="ragione" sort={sort} onSort={onSort} />
+                <SortableHead label="Sede" sortKey="sede" sort={sort} onSort={onSort} />
+                <SortableHead label="P.IVA / C.F." sortKey="fiscale" sort={sort} onSort={onSort} />
+                <SortableHead label="SDI" sortKey="sdi" sort={sort} onSort={onSort} />
                 <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clienti.map((c) => (
+              {sorted.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.ragione_sociale}</TableCell>
                   <TableCell className="text-muted-foreground">
