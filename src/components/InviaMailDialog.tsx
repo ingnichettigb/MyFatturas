@@ -209,9 +209,15 @@ export function InviaMailDialog({
             <Button variant="outline" onClick={apriClient}>
               <Mail className="size-4" /> Client predefinito
             </Button>
-            <Button onClick={apriGmail}>
+            <Button variant="outline" onClick={apriGmail}>
               <Send className="size-4" /> Apri in Gmail
             </Button>
+            {preparaPdf && (
+              <Button onClick={inviaOra} disabled={invio}>
+                {invio ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                Invia ora con PDF allegato
+              </Button>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>
