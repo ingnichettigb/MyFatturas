@@ -121,8 +121,8 @@ export function InviaMailDialog({
           <Mail className="size-4" /> Invia per email
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] max-w-2xl flex-col overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Lettera di trasmissione</DialogTitle>
           <DialogDescription>
             Rileggi e modifica il testo, scarica il PDF del preventivo da allegare, poi apri la mail
@@ -130,7 +130,7 @@ export function InviaMailDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3">
+        <div className="grid shrink-0 gap-3 overflow-y-auto">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="mail-a">Destinatario</Label>
@@ -154,7 +154,7 @@ export function InviaMailDialog({
             <Label htmlFor="mail-corpo">Testo della lettera</Label>
             <Textarea
               id="mail-corpo"
-              rows={14}
+              rows={10}
               value={corpo}
               onChange={(e) => setCorpo(e.target.value)}
             />
