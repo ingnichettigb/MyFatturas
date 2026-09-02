@@ -82,6 +82,29 @@ export async function salvaConDialogo(
   return true;
 }
 
+/** Genera il PDF del documento (A4, multipagina) e lo restituisce in base64. */
+export async function pdfBase64(el: HTMLElement): Promise<string> {
+  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+    import("html2canvas"),
+    import("jspdf"),
+  ]);
+  const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+  const pdf = new jsPDF({ unit: "mm", format: "a4" });
+  const paginaH = 297;
+  const imgW = 210;
+  const imgH = (canvas.height * imgW) / canvas.width;
+  const img = canvas.toDataURL("image/jpeg", 0.92);
+  let restante = imgH;
+  let y = 0;
+  while (restante > 0) {
+    if (y !== 0) pdf.addPage();
+    pdf.addImage(img, "JPEG", 0, y, imgW, imgH);
+    restante -= paginaH;
+    y -= paginaH;
+  }
+  return pdf.output("datauristring").split(",")[1] ?? "";
+}
+
 /** Apre la finestra di stampa del browser sul solo documento: scegliendo "Salva come PDF" si ottiene il file. */
 export function stampaPdf(titolo: string, el: HTMLElement) {
   const html = documentoHtml(titolo, el);
