@@ -130,7 +130,7 @@ export function InviaMailDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid shrink-0 gap-3 overflow-y-auto">
+        <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="mail-a">Destinatario</Label>
@@ -161,7 +161,7 @@ export function InviaMailDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex-wrap gap-2 sm:justify-between">
+        <DialogFooter className="mt-1 shrink-0 flex-wrap gap-2 sm:justify-between">
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => scaricaPdf()}>
               <Paperclip className="size-4" /> Scarica PDF da allegare
