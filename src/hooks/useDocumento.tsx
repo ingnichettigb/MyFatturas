@@ -2,22 +2,24 @@ import { useRef, useState } from "react";
 import { FileDown, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { documentoHtml, nomeFile, salvaConDialogo, stampaPdf } from "@/lib/documento-file";
+import { documentoHtml, nomeFile, pdfBase64, salvaConDialogo, stampaPdf } from "@/lib/documento-file";
 
 /** Gestisce tab, riferimento al foglio A4 e le azioni di stampa/salvataggio del documento. */
 export function useDocumento(nomeBase: () => string) {
   const [tab, setTab] = useState("dati");
   const docRef = useRef<HTMLDivElement>(null);
 
-  async function conFoglio(azione: (el: HTMLElement, nome: string) => void | Promise<void>) {
+  async function conFoglio<T>(
+    azione: (el: HTMLElement, nome: string) => T | Promise<T>,
+  ): Promise<T | undefined> {
     setTab("stampa");
     await new Promise((r) => setTimeout(r, 400));
     const el = docRef.current?.querySelector<HTMLElement>(".sheet-a4");
     if (!el) {
       toast.error("Anteprima non disponibile");
-      return;
+      return undefined;
     }
-    await azione(el, nomeFile(nomeBase()));
+    return azione(el, nomeFile(nomeBase()));
   }
 
   const esportaPdf = () => conFoglio((el, nome) => stampaPdf(nome, el));
@@ -28,7 +30,11 @@ export function useDocumento(nomeBase: () => string) {
       if (ok) toast.success("Documento salvato");
     });
 
-  return { tab, setTab, docRef, esportaPdf, salvaFile };
+  /** PDF del documento in base64, pronto per essere allegato a una mail. */
+  const preparaPdf = () =>
+    conFoglio(async (el, nome) => ({ nome: `${nome}.pdf`, base64: await pdfBase64(el) }));
+
+  return { tab, setTab, docRef, esportaPdf, salvaFile, preparaPdf };
 }
 
 export function AzioniDocumento({
