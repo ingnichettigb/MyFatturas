@@ -49,8 +49,8 @@ export const inviaMailConPdf = createServerFn({ method: "POST" })
     const res = await fetch(`${GATEWAY}/users/me/messages/send`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.LOVABLE_API_KEY}`,
-        "X-Connection-Api-Key": process.env.GOOGLE_MAIL_API_KEY!,
+        Authorization: `Bearer ${process.env["LOVABLE_API_KEY"]}`,
+        "X-Connection-Api-Key": process.env["GOOGLE_MAIL_API_KEY"]!,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ raw: Buffer.from(raw, "utf8").toString("base64url") }),
