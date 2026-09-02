@@ -67,17 +67,21 @@ export function corpoLettera(d: LetteraDati) {
 }
 
 /**
- * Prepara la lettera di trasmissione del preventivo: si rilegge, si allega il PDF
- * e si apre nel client di posta (Gmail o programma predefinito) per l'invio manuale.
+ * Prepara la lettera di trasmissione del preventivo: si rilegge, poi con un click
+ * si spedisce dalla mail dello studio con il PDF già allegato. Restano disponibili
+ * anche l'apertura in Gmail / client predefinito per l'invio manuale.
  */
 export function InviaMailDialog({
   dati,
   scaricaPdf,
+  preparaPdf,
 }: {
   dati: LetteraDati;
   scaricaPdf: () => void | Promise<void>;
+  preparaPdf?: () => Promise<{ nome: string; base64: string } | undefined>;
 }) {
   const [open, setOpen] = useState(false);
+  const [invio, setInvio] = useState(false);
   const [a, setA] = useState(dati.destinatario);
   const [cc, setCc] = useState("");
   const [oggetto, setOggetto] = useState("");
@@ -90,6 +94,35 @@ export function InviaMailDialog({
     setCorpo(corpoLettera(dati));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  const inviaOra = async () => {
+    if (!preparaPdf) return;
+    if (!a.trim()) {
+      toast.error("Inserisci il destinatario");
+      return;
+    }
+    setInvio(true);
+    try {
+      const pdf = await preparaPdf();
+      if (!pdf) throw new Error("PDF del documento non disponibile");
+      await inviaMailConPdf({
+        data: {
+          a: a.trim(),
+          cc: cc.trim() || undefined,
+          oggetto,
+          corpo,
+          nomeAllegato: pdf.nome,
+          pdfBase64: pdf.base64,
+        },
+      });
+      toast.success("Email inviata con il PDF allegato");
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Invio fallito");
+    } finally {
+      setInvio(false);
+    }
+  };
 
   const apriGmail = () => {
     const url = new URL("https://mail.google.com/mail/");

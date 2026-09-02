@@ -268,6 +268,7 @@ function PreventivoDetail() {
           <AzioniDocumento esportaPdf={doc.esportaPdf} salvaFile={doc.salvaFile} />
           <InviaMailDialog
             scaricaPdf={doc.esportaPdf}
+            preparaPdf={doc.preparaPdf}
             dati={{
               destinatario: cliente?.email ?? "",
               ragioneSociale: cliente?.ragione_sociale ?? "",
