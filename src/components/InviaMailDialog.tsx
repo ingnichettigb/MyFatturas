@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Copy, Mail, Paperclip, Send } from "lucide-react";
+import { Copy, Loader2, Mail, Paperclip, Send } from "lucide-react";
 import { toast } from "sonner";
+import { inviaMailConPdf } from "@/lib/mail.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -158,8 +159,9 @@ export function InviaMailDialog({
         <DialogHeader className="shrink-0">
           <DialogTitle>Lettera di trasmissione</DialogTitle>
           <DialogDescription>
-            Rileggi e modifica il testo, scarica il PDF del preventivo da allegare, poi apri la mail
-            e invia tu quando sei d'accordo. Mittente: {MITTENTE_STUDIO}.
+            Rileggi e modifica il testo, poi premi "Invia ora": la mail parte da {MITTENTE_STUDIO}{" "}
+            con il PDF del documento già allegato. In alternativa puoi aprirla in Gmail o nel client
+            predefinito e allegare tu il PDF.
           </DialogDescription>
         </DialogHeader>
 
