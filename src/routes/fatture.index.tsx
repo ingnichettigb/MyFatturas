@@ -77,6 +77,7 @@ function FatturePage() {
       data: (f) => f.data,
       cliente: (f) => f.clienteNome,
       scadenza: (f) => f.scadenza,
+      pagamento: (f) => f.data_pagamento ?? "",
       totale: (f) => f.totale,
       stato: (f) => f.statoLabel,
     },
@@ -189,6 +190,13 @@ function FatturePage() {
                   onSort={onSort}
                   className="w-28 text-right"
                 />
+                <SortableHead
+                  label="Pagamento"
+                  sortKey="pagamento"
+                  sort={sort}
+                  onSort={onSort}
+                  className="w-28"
+                />
                 <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
               </TableRow>
             </TableHeader>
@@ -205,6 +213,7 @@ function FatturePage() {
                   <TableCell>{f.clienteNome || "—"}</TableCell>
                   <TableCell className="num">{dataIt(f.scadenza)}</TableCell>
                   <TableCell className="num text-right">{euro(f.totale)}</TableCell>
+                  <TableCell className="num">{dataIt(f.data_pagamento)}</TableCell>
                   <TableCell>
                     <Badge variant={f.stato === "pagata" ? "default" : "secondary"}>
                       {f.statoLabel}
@@ -214,7 +223,7 @@ function FatturePage() {
               ))}
               {!lista.length && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                     {isLoading ? "Caricamento…" : "Nessun documento."}
                   </TableCell>
                 </TableRow>
