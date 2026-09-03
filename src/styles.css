@@ -43,6 +43,10 @@
   --color-ring: var(--ring);
   --color-paper: var(--paper);
   --color-paper-foreground: var(--paper-foreground);
+  --color-stato-spedito: var(--stato-spedito);
+  --color-stato-ordine: var(--stato-ordine);
+  --color-stato-fatturato: var(--stato-fatturato);
+  --color-stato-pagato: var(--stato-pagato);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -81,6 +85,11 @@
   --ring: oklch(0.47 0.083 202);
   --paper: oklch(1 0 0);
   --paper-foreground: oklch(0.2 0.015 220);
+  /* Colori di avanzamento documenti — base comune per tutte le tabelle */
+  --stato-spedito: oklch(0.93 0.04 75);
+  --stato-ordine: oklch(0.94 0.07 55);
+  --stato-fatturato: oklch(0.96 0.08 95);
+  --stato-pagato: oklch(0.94 0.06 150);
   --sidebar: oklch(0.29 0.038 205);
   --sidebar-foreground: oklch(0.93 0.012 200);
   --sidebar-primary: oklch(0.62 0.1 195);
@@ -117,6 +126,10 @@
   --ring: oklch(0.66 0.1 195);
   --paper: oklch(1 0 0);
   --paper-foreground: oklch(0.2 0.015 220);
+  --stato-spedito: oklch(0.36 0.035 75);
+  --stato-ordine: oklch(0.39 0.06 55);
+  --stato-fatturato: oklch(0.42 0.07 95);
+  --stato-pagato: oklch(0.39 0.06 150);
   --sidebar: oklch(0.22 0.025 210);
   --sidebar-foreground: oklch(0.93 0.012 200);
   --sidebar-primary: oklch(0.66 0.1 195);
@@ -158,6 +171,23 @@
 @utility num {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* Sfondi riga per stato di avanzamento (tabelle documenti) */
+@utility bg-stato-spedito {
+  background-color: var(--color-stato-spedito);
+}
+
+@utility bg-stato-ordine {
+  background-color: var(--color-stato-ordine);
+}
+
+@utility bg-stato-fatturato {
+  background-color: var(--color-stato-fatturato);
+}
+
+@utility bg-stato-pagato {
+  background-color: var(--color-stato-pagato);
 }
 
 /* Foglio A4 per la stampa dei documenti */

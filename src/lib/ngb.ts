@@ -138,6 +138,21 @@ export const labelStato = (
   value: string | null | undefined,
 ) => lista.find((s) => s.value === value)?.label ?? value ?? "—";
 
+/* Sfondo riga in base all'avanzamento del documento.
+ * Priorità: pagato > fatturato > ordine cliente > spedito. */
+export function classeRigaPreventivo(stato: string, numeroOrdine?: string | null): string {
+  if (stato === "fatturato") return "bg-stato-fatturato hover:bg-stato-fatturato";
+  if (numeroOrdine?.trim()) return "bg-stato-ordine hover:bg-stato-ordine";
+  if (stato === "inviato") return "bg-stato-spedito hover:bg-stato-spedito";
+  return "";
+}
+
+export function classeRigaFattura(stato: string): string {
+  if (stato === "pagata") return "bg-stato-pagato hover:bg-stato-pagato";
+  if (stato === "inviata") return "bg-stato-spedito hover:bg-stato-spedito";
+  return "";
+}
+
 export const MESI = [
   "gennaio",
   "febbraio",

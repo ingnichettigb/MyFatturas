@@ -29,6 +29,7 @@ import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useClienti, useFatture, useImpostazioni } from "@/lib/queries";
 import {
+  classeRigaFattura,
   dataIt,
   euro,
   labelStato,
@@ -193,7 +194,7 @@ function FatturePage() {
             </TableHeader>
             <TableBody>
               {lista.map((f) => (
-                <TableRow key={f.id}>
+                <TableRow key={f.id} className={classeRigaFattura(f.stato)}>
                   <TableCell className="num font-medium">
                     <Link to="/fatture/$id" params={{ id: f.id }} className="hover:underline">
                       {f.numero}
