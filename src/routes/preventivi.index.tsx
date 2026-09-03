@@ -27,7 +27,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
-import { useClienti, useCommesse, useImpostazioni, usePreventivi } from "@/lib/queries";
+import { useClienti, useCommesse, useFatture, useImpostazioni, usePreventivi } from "@/lib/queries";
 import {
   classeRigaPreventivo,
   dataIt,
@@ -63,15 +63,19 @@ function PreventiviPage() {
   const { data: clienti = [] } = useClienti();
   const { data: commesse = [] } = useCommesse();
   const { data: imp } = useImpostazioni();
+  const { data: fatture = [] } = useFatture();
   const { sorted, sort, onSort } = useSort(
     preventivi.map((p) => ({
       ...p,
       clienteNome: clienti.find((c) => c.id === p.cliente_id)?.ragione_sociale ?? "",
       statoLabel: labelStato(STATI_PREVENTIVO, p.stato),
+      dataPagamento:
+        fatture.find((f) => f.preventivo_id === p.id && f.data_pagamento)?.data_pagamento ?? null,
     })),
     {
       numero: (p) => p.numero,
       data: (p) => p.data,
+      pagamento: (p) => p.dataPagamento ?? "",
       cliente: (p) => p.clienteNome,
       oggetto: (p) => p.oggetto,
       ore: (p) => p.totale_ore,
@@ -178,6 +182,13 @@ function PreventiviPage() {
                   onSort={onSort}
                   className="w-28 text-right"
                 />
+                <SortableHead
+                  label="Pagamento"
+                  sortKey="pagamento"
+                  sort={sort}
+                  onSort={onSort}
+                  className="w-28"
+                />
                 <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
               </TableRow>
             </TableHeader>
@@ -199,6 +210,7 @@ function PreventiviPage() {
                   </TableCell>
                   <TableCell className="num text-right">{numero(p.totale_ore)}</TableCell>
                   <TableCell className="num text-right">{euro(p.totale)}</TableCell>
+                  <TableCell className="num">{dataIt(p.dataPagamento)}</TableCell>
                   <TableCell>
                     <Badge variant={p.stato === "accettato" ? "default" : "secondary"}>
                       {p.statoLabel}
@@ -208,7 +220,7 @@ function PreventiviPage() {
               ))}
               {!lista.length && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                     {isLoading ? "Caricamento…" : "Nessun preventivo."}
                   </TableCell>
                 </TableRow>
