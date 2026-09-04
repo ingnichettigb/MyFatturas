@@ -72,9 +72,7 @@ function PreventiviPage() {
         clienteNome: clienti.find((c) => c.id === p.cliente_id)?.ragione_sociale ?? "",
         statoLabel: labelStato(STATI_PREVENTIVO, p.stato),
         fatturaId: fattura?.id ?? null,
-        fatturaNumero: fattura
-          ? `${fattura.numero}/${String(fattura.anno).slice(-2)}`
-          : "",
+        fatturaNumero: fattura?.numero ?? "",
         dataPagamento: fattura?.data_pagamento ?? null,
       };
     }),
