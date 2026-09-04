@@ -82,23 +82,30 @@ export async function salvaConDialogo(
   return true;
 }
 
+function caricaImmagine(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Impossibile elaborare l'immagine del documento"));
+    img.src = src;
+  });
+}
+
 /** Genera il PDF del documento (A4, multipagina) e lo restituisce in base64. */
 export async function pdfBase64(el: HTMLElement): Promise<string> {
-  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-    import("html2canvas"),
-    import("jspdf"),
-  ]);
-  const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+  const [{ toPng }, { jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
+  // html-to-image renderizza via SVG: supporta i colori oklch di Tailwind v4.
+  const dataUrl = await toPng(el, { pixelRatio: 2, backgroundColor: "#ffffff", cacheBust: true });
+  const bitmap = await caricaImmagine(dataUrl);
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
   const paginaH = 297;
   const imgW = 210;
-  const imgH = (canvas.height * imgW) / canvas.width;
-  const img = canvas.toDataURL("image/jpeg", 0.92);
+  const imgH = (bitmap.height * imgW) / bitmap.width;
   let restante = imgH;
   let y = 0;
   while (restante > 0) {
     if (y !== 0) pdf.addPage();
-    pdf.addImage(img, "JPEG", 0, y, imgW, imgH);
+    pdf.addImage(dataUrl, "PNG", 0, y, imgW, imgH);
     restante -= paginaH;
     y -= paginaH;
   }
