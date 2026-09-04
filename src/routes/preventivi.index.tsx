@@ -190,6 +190,13 @@ function PreventiviPage() {
                   className="w-28 text-right"
                 />
                 <SortableHead
+                  label="Fattura"
+                  sortKey="fattura"
+                  sort={sort}
+                  onSort={onSort}
+                  className="w-28"
+                />
+                <SortableHead
                   label="Pagamento"
                   sortKey="pagamento"
                   sort={sort}
@@ -217,6 +224,19 @@ function PreventiviPage() {
                   </TableCell>
                   <TableCell className="num text-right">{numero(p.totale_ore)}</TableCell>
                   <TableCell className="num text-right">{euro(p.totale)}</TableCell>
+                  <TableCell className="num">
+                    {p.fatturaId ? (
+                      <Link
+                        to="/fatture/$id"
+                        params={{ id: p.fatturaId }}
+                        className="hover:underline"
+                      >
+                        {p.fatturaNumero}
+                      </Link>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
                   <TableCell className="num">{dataIt(p.dataPagamento)}</TableCell>
                   <TableCell>
                     <Badge variant={p.stato === "accettato" ? "default" : "secondary"}>
