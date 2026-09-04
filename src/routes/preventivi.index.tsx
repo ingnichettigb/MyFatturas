@@ -65,17 +65,24 @@ function PreventiviPage() {
   const { data: imp } = useImpostazioni();
   const { data: fatture = [] } = useFatture();
   const { sorted, sort, onSort } = useSort(
-    preventivi.map((p) => ({
-      ...p,
-      clienteNome: clienti.find((c) => c.id === p.cliente_id)?.ragione_sociale ?? "",
-      statoLabel: labelStato(STATI_PREVENTIVO, p.stato),
-      dataPagamento:
-        fatture.find((f) => f.preventivo_id === p.id && f.data_pagamento)?.data_pagamento ?? null,
-    })),
+    preventivi.map((p) => {
+      const fattura = fatture.find((f) => f.preventivo_id === p.id);
+      return {
+        ...p,
+        clienteNome: clienti.find((c) => c.id === p.cliente_id)?.ragione_sociale ?? "",
+        statoLabel: labelStato(STATI_PREVENTIVO, p.stato),
+        fatturaId: fattura?.id ?? null,
+        fatturaNumero: fattura
+          ? `${fattura.numero}/${String(fattura.anno).slice(-2)}`
+          : "",
+        dataPagamento: fattura?.data_pagamento ?? null,
+      };
+    }),
     {
       numero: (p) => p.numero,
       data: (p) => p.data,
       pagamento: (p) => p.dataPagamento ?? "",
+      fattura: (p) => p.fatturaNumero,
       cliente: (p) => p.clienteNome,
       oggetto: (p) => p.oggetto,
       ore: (p) => p.totale_ore,
