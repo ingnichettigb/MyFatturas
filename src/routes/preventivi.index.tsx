@@ -263,6 +263,7 @@ function PreventiviPage() {
                   className="w-28"
                 />
                 <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
+                <TableHead className="w-36 text-right">Azioni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -301,6 +302,45 @@ function PreventiviPage() {
                     <Badge variant={p.stato === "accettato" ? "default" : "secondary"}>
                       {p.statoLabel}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button asChild variant="ghost" size="icon" title="Vedi">
+                        <Link to="/preventivi/$id" params={{ id: p.id }}>
+                          <Eye className="size-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Duplica"
+                        disabled={duplica.isPending}
+                        onClick={() => duplica.mutate(p)}
+                      >
+                        <Copy className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Invia di nuovo"
+                        onClick={() =>
+                          navigate({ to: "/preventivi/$id", params: { id: p.id }, search: { mail: true } })
+                        }
+                      >
+                        <Send className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Elimina"
+                        disabled={elimina.isPending}
+                        onClick={() => {
+                          if (confirm(`Eliminare il preventivo ${p.numero}?`)) elimina.mutate(p.id);
+                        }}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
