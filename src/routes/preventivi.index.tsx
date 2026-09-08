@@ -133,7 +133,7 @@ function PreventiviPage() {
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ["preventivi"] });
       setOpen(false);
-      navigate({ to: "/preventivi/$id", params: { id } });
+      navigate({ to: "/preventivi/$id", params: { id }, search: { mail: false } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -180,7 +180,7 @@ function PreventiviPage() {
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ["preventivi"] });
       toast.success("Preventivo duplicato");
-      navigate({ to: "/preventivi/$id", params: { id } });
+      navigate({ to: "/preventivi/$id", params: { id }, search: { mail: false } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -273,7 +273,7 @@ function PreventiviPage() {
                   className={`cursor-pointer ${classeRigaPreventivo(p.stato, p.numero_ordine)}`}
                 >
                   <TableCell className="num font-medium">
-                    <Link to="/preventivi/$id" params={{ id: p.id }} className="hover:underline">
+                    <Link to="/preventivi/$id" params={{ id: p.id }} search={{ mail: false }} className="hover:underline">
                       {p.numero}
                     </Link>
                   </TableCell>
@@ -306,7 +306,7 @@ function PreventiviPage() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button asChild variant="ghost" size="icon" title="Vedi">
-                        <Link to="/preventivi/$id" params={{ id: p.id }}>
+                        <Link to="/preventivi/$id" params={{ id: p.id }} search={{ mail: false }}>
                           <Eye className="size-4" />
                         </Link>
                       </Button>
