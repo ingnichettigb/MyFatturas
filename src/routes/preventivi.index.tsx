@@ -346,7 +346,7 @@ function PreventiviPage() {
               ))}
               {!lista.length && (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
                     {isLoading ? "Caricamento…" : "Nessun preventivo."}
                   </TableCell>
                 </TableRow>
