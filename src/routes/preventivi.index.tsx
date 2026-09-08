@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Copy, Eye, Plus, Send, Trash2 } from "lucide-react";
+import { Copy, Eye, Plus, ReceiptEuro, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -29,13 +29,17 @@ import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useClienti, useCommesse, useFatture, useImpostazioni, usePreventivi } from "@/lib/queries";
 import {
+  calcolaTotali,
   classeRigaPreventivo,
   dataIt,
   euro,
   labelStato,
+  n,
   numero,
   oggi,
   prossimoNumero,
+  round2,
+  scadenzaFineMeseSuccessivo,
   STATI_PREVENTIVO,
 } from "@/lib/ngb";
 
