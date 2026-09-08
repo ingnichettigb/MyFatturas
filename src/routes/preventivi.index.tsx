@@ -335,7 +335,7 @@ function PreventiviPage() {
                   className="w-28"
                 />
                 <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
-                <TableHead className="w-36 text-right">Azioni</TableHead>
+                <TableHead className="w-48 text-right">Azioni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
