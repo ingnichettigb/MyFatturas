@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Copy, Eye, Plus, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -134,6 +134,67 @@ function PreventiviPage() {
       qc.invalidateQueries({ queryKey: ["preventivi"] });
       setOpen(false);
       navigate({ to: "/preventivi/$id", params: { id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const duplica = useMutation({
+    mutationFn: async (p: (typeof preventivi)[number]) => {
+      const { data, error } = await supabase
+        .from("preventivi")
+        .insert({
+          numero: prossimoNumero("preventivo", anno, preventivi),
+          anno,
+          data: oggi(),
+          cliente_id: p.cliente_id,
+          commessa_id: p.commessa_id,
+          oggetto: p.oggetto,
+          premessa: p.premessa,
+          descrizione: p.descrizione,
+          tariffa_oraria: p.tariffa_oraria,
+          sconto_pct: p.sconto_pct,
+          contributo_pct: p.contributo_pct,
+          bollo: p.bollo,
+          validita: p.validita,
+          stato: "bozza",
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      const { data: righe, error: eR } = await supabase
+        .from("preventivo_righe")
+        .select("*")
+        .eq("preventivo_id", p.id);
+      if (eR) throw eR;
+      if (righe?.length) {
+        const { error: eI } = await supabase.from("preventivo_righe").insert(
+          righe.map(({ id: _id, created_at: _c, preventivo_id: _p, ...r }) => ({
+            ...r,
+            preventivo_id: data.id,
+          })),
+        );
+        if (eI) throw eI;
+      }
+      return data.id;
+    },
+    onSuccess: (id) => {
+      qc.invalidateQueries({ queryKey: ["preventivi"] });
+      toast.success("Preventivo duplicato");
+      navigate({ to: "/preventivi/$id", params: { id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const elimina = useMutation({
+    mutationFn: async (id: string) => {
+      const { error: eR } = await supabase.from("preventivo_righe").delete().eq("preventivo_id", id);
+      if (eR) throw eR;
+      const { error } = await supabase.from("preventivi").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["preventivi"] });
+      toast.success("Preventivo eliminato");
     },
     onError: (e: Error) => toast.error(e.message),
   });
