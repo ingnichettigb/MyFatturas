@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Copy, Eye, Plus, Send, Trash2 } from "lucide-react";
+import { Copy, Eye, Plus, ReceiptEuro, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -29,13 +29,17 @@ import { SortableHead, useSort } from "@/components/SortableHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useClienti, useCommesse, useFatture, useImpostazioni, usePreventivi } from "@/lib/queries";
 import {
+  calcolaTotali,
   classeRigaPreventivo,
   dataIt,
   euro,
   labelStato,
+  n,
   numero,
   oggi,
   prossimoNumero,
+  round2,
+  scadenzaFineMeseSuccessivo,
   STATI_PREVENTIVO,
 } from "@/lib/ngb";
 
@@ -134,6 +138,74 @@ function PreventiviPage() {
       qc.invalidateQueries({ queryKey: ["preventivi"] });
       setOpen(false);
       navigate({ to: "/preventivi/$id", params: { id }, search: { mail: false } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const diventaFattura = useMutation({
+    mutationFn: async (p: (typeof sorted)[number]) => {
+      const { data: righe, error: eR } = await supabase
+        .from("preventivo_righe")
+        .select("*")
+        .eq("preventivo_id", p.id)
+        .order("ordinamento");
+      if (eR) throw eR;
+      if (!righe?.length) throw new Error(`Il preventivo ${p.numero} non ha voci da fatturare`);
+      const data = oggi();
+      const bollo = Number(imp?.bollo ?? 0);
+      const tot = calcolaTotali({
+        righe: righe.map((r) => ({ ore: r.ore, prezzo_ora: r.prezzo_ora })),
+        contributoPct: p.contributo_pct,
+        bollo,
+      });
+      const { data: fat, error } = await supabase
+        .from("fatture")
+        .insert({
+          tipo: "nota",
+          numero: prossimoNumero("nota", anno, fatture),
+          anno,
+          data,
+          scadenza: scadenzaFineMeseSuccessivo(data),
+          cliente_id: p.cliente_id,
+          preventivo_id: p.id,
+          oggetto: p.oggetto,
+          descrizione: p.descrizione,
+          premessa:
+            "Per le prestazioni professionali di seguito indicate, Vi rimetto la presente nota onoraria.",
+          numero_ordine: p.numero_ordine,
+          data_ordine: p.data_ordine,
+          tariffa_oraria: p.tariffa_oraria,
+          sconto_pct: p.sconto_pct,
+          contributo_pct: p.contributo_pct,
+          bollo,
+          totale_ore: tot.ore,
+          imponibile: tot.imponibile,
+          contributo: tot.contributo,
+          totale: tot.totale,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      const ins = await supabase.from("fattura_righe").insert(
+        righe.map((r, i) => ({
+          fattura_id: fat.id,
+          commessa_id: p.commessa_id,
+          descrizione: r.descrizione,
+          ore: n(r.ore),
+          prezzo_ora: n(r.prezzo_ora),
+          importo: round2(n(r.ore) * n(r.prezzo_ora)),
+          ordinamento: i,
+        })),
+      );
+      if (ins.error) throw ins.error;
+      await supabase.from("preventivi").update({ stato: "fatturato" }).eq("id", p.id);
+      return fat.id;
+    },
+    onSuccess: (fid) => {
+      qc.invalidateQueries({ queryKey: ["fatture"] });
+      qc.invalidateQueries({ queryKey: ["preventivi"] });
+      toast.success("Nota onoraria creata");
+      navigate({ to: "/fatture/$id", params: { id: fid } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -263,7 +335,7 @@ function PreventiviPage() {
                   className="w-28"
                 />
                 <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
-                <TableHead className="w-36 text-right">Azioni</TableHead>
+                <TableHead className="w-48 text-right">Azioni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -305,6 +377,15 @@ function PreventiviPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Diventa fattura"
+                        disabled={diventaFattura.isPending}
+                        onClick={() => diventaFattura.mutate(p)}
+                      >
+                        <ReceiptEuro className="size-4" />
+                      </Button>
                       <Button asChild variant="ghost" size="icon" title="Vedi">
                         <Link to="/preventivi/$id" params={{ id: p.id }} search={{ mail: false }}>
                           <Eye className="size-4" />
