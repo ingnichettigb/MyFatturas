@@ -142,6 +142,74 @@ function PreventiviPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const diventaFattura = useMutation({
+    mutationFn: async (p: (typeof sorted)[number]) => {
+      const { data: righe, error: eR } = await supabase
+        .from("preventivo_righe")
+        .select("*")
+        .eq("preventivo_id", p.id)
+        .order("ordinamento");
+      if (eR) throw eR;
+      if (!righe?.length) throw new Error(`Il preventivo ${p.numero} non ha voci da fatturare`);
+      const data = oggi();
+      const bollo = Number(imp?.bollo ?? 0);
+      const tot = calcolaTotali({
+        righe: righe.map((r) => ({ ore: r.ore, prezzo_ora: r.prezzo_ora })),
+        contributoPct: p.contributo_pct,
+        bollo,
+      });
+      const { data: fat, error } = await supabase
+        .from("fatture")
+        .insert({
+          tipo: "nota",
+          numero: prossimoNumero("nota", anno, fatture),
+          anno,
+          data,
+          scadenza: scadenzaFineMeseSuccessivo(data),
+          cliente_id: p.cliente_id,
+          preventivo_id: p.id,
+          oggetto: p.oggetto,
+          descrizione: p.descrizione,
+          premessa:
+            "Per le prestazioni professionali di seguito indicate, Vi rimetto la presente nota onoraria.",
+          numero_ordine: p.numero_ordine,
+          data_ordine: p.data_ordine,
+          tariffa_oraria: p.tariffa_oraria,
+          sconto_pct: p.sconto_pct,
+          contributo_pct: p.contributo_pct,
+          bollo,
+          totale_ore: tot.ore,
+          imponibile: tot.imponibile,
+          contributo: tot.contributo,
+          totale: tot.totale,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      const ins = await supabase.from("fattura_righe").insert(
+        righe.map((r, i) => ({
+          fattura_id: fat.id,
+          commessa_id: p.commessa_id,
+          descrizione: r.descrizione,
+          ore: n(r.ore),
+          prezzo_ora: n(r.prezzo_ora),
+          importo: round2(n(r.ore) * n(r.prezzo_ora)),
+          ordinamento: i,
+        })),
+      );
+      if (ins.error) throw ins.error;
+      await supabase.from("preventivi").update({ stato: "fatturato" }).eq("id", p.id);
+      return fat.id;
+    },
+    onSuccess: (fid) => {
+      qc.invalidateQueries({ queryKey: ["fatture"] });
+      qc.invalidateQueries({ queryKey: ["preventivi"] });
+      toast.success("Nota onoraria creata");
+      navigate({ to: "/fatture/$id", params: { id: fid } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const duplica = useMutation({
     mutationFn: async (p: (typeof preventivi)[number]) => {
       const { data, error } = await supabase
