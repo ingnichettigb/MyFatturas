@@ -377,6 +377,15 @@ function PreventiviPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Diventa fattura"
+                        disabled={diventaFattura.isPending}
+                        onClick={() => diventaFattura.mutate(p)}
+                      >
+                        <ReceiptEuro className="size-4" />
+                      </Button>
                       <Button asChild variant="ghost" size="icon" title="Vedi">
                         <Link to="/preventivi/$id" params={{ id: p.id }} search={{ mail: false }}>
                           <Eye className="size-4" />
