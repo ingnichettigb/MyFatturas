@@ -76,10 +76,12 @@ export function InviaMailDialog({
   dati,
   scaricaPdf,
   preparaPdf,
+  autoOpen = false,
 }: {
   dati: LetteraDati;
   scaricaPdf: () => void | Promise<void>;
   preparaPdf?: () => Promise<{ nome: string; base64: string } | undefined>;
+  autoOpen?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [invio, setInvio] = useState(false);
@@ -87,6 +89,10 @@ export function InviaMailDialog({
   const [cc, setCc] = useState("");
   const [oggetto, setOggetto] = useState("");
   const [corpo, setCorpo] = useState("");
+
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
 
   useEffect(() => {
     if (!open) return;

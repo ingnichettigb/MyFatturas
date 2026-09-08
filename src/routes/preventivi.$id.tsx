@@ -37,6 +37,9 @@ import {
 } from "@/lib/ngb";
 
 export const Route = createFileRoute("/preventivi/$id")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    mail: search["mail"] === 1 || search["mail"] === "1" || search["mail"] === true,
+  }),
   head: () => ({
     meta: [
       { title: "Dettaglio preventivo — Studio NGB" },
@@ -57,6 +60,7 @@ export const Route = createFileRoute("/preventivi/$id")({
 
 function PreventivoDetail() {
   const { id } = Route.useParams();
+  const { mail: apriMail } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: imp } = useImpostazioni();
@@ -269,6 +273,7 @@ function PreventivoDetail() {
           <InviaMailDialog
             scaricaPdf={doc.esportaPdf}
             preparaPdf={doc.preparaPdf}
+            autoOpen={apriMail}
             dati={{
               destinatario: cliente?.email ?? "",
               ragioneSociale: cliente?.ragione_sociale ?? "",

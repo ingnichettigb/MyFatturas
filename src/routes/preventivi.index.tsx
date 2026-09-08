@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Copy, Eye, Plus, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -133,7 +133,68 @@ function PreventiviPage() {
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ["preventivi"] });
       setOpen(false);
-      navigate({ to: "/preventivi/$id", params: { id } });
+      navigate({ to: "/preventivi/$id", params: { id }, search: { mail: false } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const duplica = useMutation({
+    mutationFn: async (p: (typeof preventivi)[number]) => {
+      const { data, error } = await supabase
+        .from("preventivi")
+        .insert({
+          numero: prossimoNumero("preventivo", anno, preventivi),
+          anno,
+          data: oggi(),
+          cliente_id: p.cliente_id,
+          commessa_id: p.commessa_id,
+          oggetto: p.oggetto,
+          premessa: p.premessa,
+          descrizione: p.descrizione,
+          tariffa_oraria: p.tariffa_oraria,
+          sconto_pct: p.sconto_pct,
+          contributo_pct: p.contributo_pct,
+          bollo: p.bollo,
+          validita: p.validita,
+          stato: "bozza",
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      const { data: righe, error: eR } = await supabase
+        .from("preventivo_righe")
+        .select("*")
+        .eq("preventivo_id", p.id);
+      if (eR) throw eR;
+      if (righe?.length) {
+        const { error: eI } = await supabase.from("preventivo_righe").insert(
+          righe.map(({ id: _id, created_at: _c, preventivo_id: _p, ...r }) => ({
+            ...r,
+            preventivo_id: data.id,
+          })),
+        );
+        if (eI) throw eI;
+      }
+      return data.id;
+    },
+    onSuccess: (id) => {
+      qc.invalidateQueries({ queryKey: ["preventivi"] });
+      toast.success("Preventivo duplicato");
+      navigate({ to: "/preventivi/$id", params: { id }, search: { mail: false } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const elimina = useMutation({
+    mutationFn: async (id: string) => {
+      const { error: eR } = await supabase.from("preventivo_righe").delete().eq("preventivo_id", id);
+      if (eR) throw eR;
+      const { error } = await supabase.from("preventivi").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["preventivi"] });
+      toast.success("Preventivo eliminato");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -202,6 +263,7 @@ function PreventiviPage() {
                   className="w-28"
                 />
                 <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
+                <TableHead className="w-36 text-right">Azioni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -211,7 +273,7 @@ function PreventiviPage() {
                   className={`cursor-pointer ${classeRigaPreventivo(p.stato, p.numero_ordine)}`}
                 >
                   <TableCell className="num font-medium">
-                    <Link to="/preventivi/$id" params={{ id: p.id }} className="hover:underline">
+                    <Link to="/preventivi/$id" params={{ id: p.id }} search={{ mail: false }} className="hover:underline">
                       {p.numero}
                     </Link>
                   </TableCell>
@@ -241,11 +303,50 @@ function PreventiviPage() {
                       {p.statoLabel}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button asChild variant="ghost" size="icon" title="Vedi">
+                        <Link to="/preventivi/$id" params={{ id: p.id }} search={{ mail: false }}>
+                          <Eye className="size-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Duplica"
+                        disabled={duplica.isPending}
+                        onClick={() => duplica.mutate(p)}
+                      >
+                        <Copy className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Invia di nuovo"
+                        onClick={() =>
+                          navigate({ to: "/preventivi/$id", params: { id: p.id }, search: { mail: true } })
+                        }
+                      >
+                        <Send className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Elimina"
+                        disabled={elimina.isPending}
+                        onClick={() => {
+                          if (confirm(`Eliminare il preventivo ${p.numero}?`)) elimina.mutate(p.id);
+                        }}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
               {!lista.length && (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
                     {isLoading ? "Caricamento…" : "Nessun preventivo."}
                   </TableCell>
                 </TableRow>

@@ -86,6 +86,7 @@ function Dashboard() {
                 key={p.id}
                 to="/preventivi/$id"
                 params={{ id: p.id }}
+                search={{ mail: false }}
                 className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 hover:bg-accent"
               >
                 <div className="min-w-0">
