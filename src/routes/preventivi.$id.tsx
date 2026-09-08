@@ -60,6 +60,7 @@ export const Route = createFileRoute("/preventivi/$id")({
 
 function PreventivoDetail() {
   const { id } = Route.useParams();
+  const { mail: apriMail } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: imp } = useImpostazioni();
