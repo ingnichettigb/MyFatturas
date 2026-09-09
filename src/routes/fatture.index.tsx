@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Copy, Eye, Plus, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -136,12 +136,86 @@ function FatturePage() {
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ["fatture"] });
       setOpen(false);
-      navigate({ to: "/fatture/$id", params: { id } });
+      navigate({ to: "/fatture/$id", params: { id }, search: { mail: false } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const lista = sorted.filter((f) => filtro === "tutti" || f.stato === filtro);
+
+  const duplica = useMutation({
+    mutationFn: async (orig: (typeof lista)[number]) => {
+      const numero = prossimoNumero(orig.tipo as "nota" | "preavviso", anno, fatture);
+      const dataDoc = oggi();
+      const { data: copia, error } = await supabase
+        .from("fatture")
+        .insert({
+          tipo: orig.tipo,
+          numero,
+          anno,
+          data: dataDoc,
+          scadenza: scadenzaFineMeseSuccessivo(dataDoc),
+          cliente_id: orig.cliente_id,
+          oggetto: orig.oggetto,
+          premessa: orig.premessa,
+          descrizione: orig.descrizione,
+          note: orig.note,
+          tariffa_oraria: orig.tariffa_oraria,
+          sconto_pct: orig.sconto_pct,
+          contributo_pct: orig.contributo_pct,
+          bollo: orig.bollo,
+          ritenuta: orig.ritenuta,
+          totale_ore: orig.totale_ore,
+          imponibile: orig.imponibile,
+          contributo: orig.contributo,
+          totale: orig.totale,
+          stato: "da_inviare",
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      const { data: righe, error: errR } = await supabase
+        .from("fattura_righe")
+        .select("*")
+        .eq("fattura_id", orig.id);
+      if (errR) throw errR;
+      if (righe?.length) {
+        const ins = await supabase.from("fattura_righe").insert(
+          righe.map((r) => ({
+            fattura_id: copia.id,
+            ordinamento: r.ordinamento,
+            commessa_id: r.commessa_id,
+            descrizione: r.descrizione,
+            ore: r.ore,
+            prezzo_ora: r.prezzo_ora,
+            importo: r.importo,
+          })),
+        );
+        if (ins.error) throw ins.error;
+      }
+      return copia.id;
+    },
+    onSuccess: (idNuovo) => {
+      qc.invalidateQueries({ queryKey: ["fatture"] });
+      toast.success("Documento duplicato in bozza");
+      navigate({ to: "/fatture/$id", params: { id: idNuovo }, search: { mail: false } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const elimina = useMutation({
+    mutationFn: async (idDoc: string) => {
+      const delR = await supabase.from("fattura_righe").delete().eq("fattura_id", idDoc);
+      if (delR.error) throw delR.error;
+      const { error } = await supabase.from("fatture").delete().eq("id", idDoc);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fatture"] });
+      toast.success("Documento eliminato");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <AppShell
@@ -198,13 +272,14 @@ function FatturePage() {
                   className="w-28"
                 />
                 <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
+                <TableHead className="w-40 text-right">Azioni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {lista.map((f) => (
                 <TableRow key={f.id} className={classeRigaFattura(f.stato)}>
                   <TableCell className="num font-medium">
-                    <Link to="/fatture/$id" params={{ id: f.id }} className="hover:underline">
+                    <Link to="/fatture/$id" params={{ id: f.id }} search={{ mail: false }} className="hover:underline">
                       {f.numero}
                     </Link>
                   </TableCell>
@@ -219,11 +294,58 @@ function FatturePage() {
                       {f.statoLabel}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button asChild variant="ghost" size="icon" title="Vedi">
+                        <Link
+                          to="/fatture/$id"
+                          params={{ id: f.id }}
+                          search={{ mail: false }}
+                          aria-label="Vedi documento"
+                        >
+                          <Eye className="size-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Duplica"
+                        aria-label="Duplica documento"
+                        onClick={() => duplica.mutate(f)}
+                        disabled={duplica.isPending}
+                      >
+                        <Copy className="size-4" />
+                      </Button>
+                      <Button asChild variant="ghost" size="icon" title="Invia di nuovo">
+                        <Link
+                          to="/fatture/$id"
+                          params={{ id: f.id }}
+                          search={{ mail: true }}
+                          aria-label="Invia di nuovo per email"
+                        >
+                          <Send className="size-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Cancella"
+                        aria-label="Elimina documento"
+                        className="text-destructive"
+                        onClick={() => {
+                          if (confirm(`Eliminare il documento ${f.numero}?`)) elimina.mutate(f.id);
+                        }}
+                        disabled={elimina.isPending}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
               {!lista.length && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
                     {isLoading ? "Caricamento…" : "Nessun documento."}
                   </TableCell>
                 </TableRow>

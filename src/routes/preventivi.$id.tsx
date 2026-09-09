@@ -240,7 +240,7 @@ function PreventivoDetail() {
     onSuccess: (fid) => {
       qc.invalidateQueries({ queryKey: ["fatture"] });
       qc.invalidateQueries({ queryKey: ["preventivi"] });
-      navigate({ to: "/fatture/$id", params: { id: fid } });
+      navigate({ to: "/fatture/$id", params: { id: fid }, search: { mail: false } });
     },
     onError: (e: Error) => toast.error(e.message),
   });

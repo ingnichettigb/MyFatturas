@@ -20,6 +20,8 @@ import {
 export const MITTENTE_STUDIO = "ingnichettigb@gmail.com";
 
 export type LetteraDati = {
+  /** Tipo di documento citato in oggetto e corpo (es. "Preventivo", "Nota onoraria"). */
+  tipoDoc?: string;
   destinatario: string;
   ragioneSociale: string;
   referente: string;
@@ -38,24 +40,35 @@ const dataIt = (iso: string) => {
 };
 
 export function oggettoLettera(d: LetteraDati) {
-  return `Preventivo n. ${d.numeroDoc} del ${dataIt(d.data)}${d.oggetto ? ` — ${d.oggetto}` : ""}`;
+  const tipo = d.tipoDoc ?? "Preventivo";
+  return `${tipo} n. ${d.numeroDoc} del ${dataIt(d.data)}${d.oggetto ? ` — ${d.oggetto}` : ""}`;
 }
 
 export function corpoLettera(d: LetteraDati) {
+  const tipo = (d.tipoDoc ?? "Preventivo").toLowerCase();
+  const isPreventivo = !d.tipoDoc || d.tipoDoc === "Preventivo";
   const saluto = d.referente ? `Gentile ${d.referente},` : "Spett.le Cliente,";
   return [
     `Spett.le ${d.ragioneSociale || "Cliente"}`,
     "",
     saluto,
     "",
-    `in allegato trasmettiamo il preventivo n. ${d.numeroDoc} del ${dataIt(d.data)}${
+    `in allegato trasmettiamo ${isPreventivo ? "il" : "la"} ${tipo} n. ${d.numeroDoc} del ${dataIt(d.data)}${
       d.oggetto ? ` relativo a: ${d.oggetto}` : ""
     }.`,
     "",
-    `Importo complessivo dell'offerta: ${d.totale}.`,
-    d.validita ? `Validità dell'offerta: ${d.validita}.` : "",
+    isPreventivo
+      ? `Importo complessivo dell'offerta: ${d.totale}.`
+      : `Importo complessivo: ${d.totale}.`,
+    d.validita
+      ? isPreventivo
+        ? `Validità dell'offerta: ${d.validita}.`
+        : `Scadenza del pagamento: ${d.validita}.`
+      : "",
     "",
-    "Restiamo a disposizione per ogni chiarimento e, in caso di accettazione, Vi preghiamo di inviarci il Vostro ordine con il relativo riferimento.",
+    isPreventivo
+      ? "Restiamo a disposizione per ogni chiarimento e, in caso di accettazione, Vi preghiamo di inviarci il Vostro ordine con il relativo riferimento."
+      : "Restiamo a disposizione per ogni chiarimento.",
     "",
     "Cordiali saluti.",
     "",

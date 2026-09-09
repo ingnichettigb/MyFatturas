@@ -205,7 +205,7 @@ function PreventiviPage() {
       qc.invalidateQueries({ queryKey: ["fatture"] });
       qc.invalidateQueries({ queryKey: ["preventivi"] });
       toast.success("Nota onoraria creata");
-      navigate({ to: "/fatture/$id", params: { id: fid } });
+      navigate({ to: "/fatture/$id", params: { id: fid }, search: { mail: false } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -361,6 +361,7 @@ function PreventiviPage() {
                       <Link
                         to="/fatture/$id"
                         params={{ id: p.fatturaId }}
+                        search={{ mail: false }}
                         className="hover:underline"
                       >
                         {p.fatturaNumero}
