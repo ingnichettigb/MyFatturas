@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Copy, Eye, Plus, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -142,6 +142,80 @@ function FatturePage() {
   });
 
   const lista = sorted.filter((f) => filtro === "tutti" || f.stato === filtro);
+
+  const duplica = useMutation({
+    mutationFn: async (orig: (typeof lista)[number]) => {
+      const numero = prossimoNumero(orig.tipo as "nota" | "preavviso", anno, fatture);
+      const dataDoc = oggi();
+      const { data: copia, error } = await supabase
+        .from("fatture")
+        .insert({
+          tipo: orig.tipo,
+          numero,
+          anno,
+          data: dataDoc,
+          scadenza: scadenzaFineMeseSuccessivo(dataDoc),
+          cliente_id: orig.cliente_id,
+          oggetto: orig.oggetto,
+          premessa: orig.premessa,
+          descrizione: orig.descrizione,
+          note: orig.note,
+          tariffa_oraria: orig.tariffa_oraria,
+          sconto_pct: orig.sconto_pct,
+          contributo_pct: orig.contributo_pct,
+          bollo: orig.bollo,
+          ritenuta: orig.ritenuta,
+          totale_ore: orig.totale_ore,
+          imponibile: orig.imponibile,
+          contributo: orig.contributo,
+          totale: orig.totale,
+          stato: "da_inviare",
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      const { data: righe, error: errR } = await supabase
+        .from("fattura_righe")
+        .select("*")
+        .eq("fattura_id", orig.id);
+      if (errR) throw errR;
+      if (righe?.length) {
+        const ins = await supabase.from("fattura_righe").insert(
+          righe.map((r) => ({
+            fattura_id: copia.id,
+            ordinamento: r.ordinamento,
+            commessa_id: r.commessa_id,
+            descrizione: r.descrizione,
+            ore: r.ore,
+            prezzo_ora: r.prezzo_ora,
+            importo: r.importo,
+          })),
+        );
+        if (ins.error) throw ins.error;
+      }
+      return copia.id;
+    },
+    onSuccess: (idNuovo) => {
+      qc.invalidateQueries({ queryKey: ["fatture"] });
+      toast.success("Documento duplicato in bozza");
+      navigate({ to: "/fatture/$id", params: { id: idNuovo }, search: { mail: false } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const elimina = useMutation({
+    mutationFn: async (idDoc: string) => {
+      const delR = await supabase.from("fattura_righe").delete().eq("fattura_id", idDoc);
+      if (delR.error) throw delR.error;
+      const { error } = await supabase.from("fatture").delete().eq("id", idDoc);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fatture"] });
+      toast.success("Documento eliminato");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <AppShell
