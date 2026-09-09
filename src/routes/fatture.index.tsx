@@ -272,6 +272,7 @@ function FatturePage() {
                   className="w-28"
                 />
                 <SortableHead label="Stato" sortKey="stato" sort={sort} onSort={onSort} className="w-28" />
+                <TableHead className="w-40 text-right">Azioni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -293,11 +294,58 @@ function FatturePage() {
                       {f.statoLabel}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button asChild variant="ghost" size="icon" title="Vedi">
+                        <Link
+                          to="/fatture/$id"
+                          params={{ id: f.id }}
+                          search={{ mail: false }}
+                          aria-label="Vedi documento"
+                        >
+                          <Eye className="size-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Duplica"
+                        aria-label="Duplica documento"
+                        onClick={() => duplica.mutate(f)}
+                        disabled={duplica.isPending}
+                      >
+                        <Copy className="size-4" />
+                      </Button>
+                      <Button asChild variant="ghost" size="icon" title="Invia di nuovo">
+                        <Link
+                          to="/fatture/$id"
+                          params={{ id: f.id }}
+                          search={{ mail: true }}
+                          aria-label="Invia di nuovo per email"
+                        >
+                          <Send className="size-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Cancella"
+                        aria-label="Elimina documento"
+                        className="text-destructive"
+                        onClick={() => {
+                          if (confirm(`Eliminare il documento ${f.numero}?`)) elimina.mutate(f.id);
+                        }}
+                        disabled={elimina.isPending}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
               {!lista.length && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
                     {isLoading ? "Caricamento…" : "Nessun documento."}
                   </TableCell>
                 </TableRow>
