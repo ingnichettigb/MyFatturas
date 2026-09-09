@@ -361,6 +361,7 @@ function PreventiviPage() {
                       <Link
                         to="/fatture/$id"
                         params={{ id: p.fatturaId }}
+                        search={{ mail: false }}
                         className="hover:underline"
                       >
                         {p.fatturaNumero}
