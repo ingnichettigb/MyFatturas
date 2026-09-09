@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { RigheEditor, type RigaForm } from "@/components/RigheEditor";
 import { DocumentoStampa } from "@/components/DocumentoStampa";
 import { AzioniDocumento, useDocumento } from "@/hooks/useDocumento";
+import { InviaMailDialog } from "@/components/InviaMailDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,11 +52,15 @@ export const Route = createFileRoute("/fatture/$id")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    mail: search["mail"] === 1 || search["mail"] === "1" || search["mail"] === true,
+  }),
   component: FatturaDetail,
 });
 
 function FatturaDetail() {
   const { id } = Route.useParams();
+  const { mail: apriMail } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: imp } = useImpostazioni();
@@ -199,6 +204,26 @@ function FatturaDetail() {
             <Printer className="size-4" /> Stampa
           </Button>
           <AzioniDocumento esportaPdf={doc.esportaPdf} salvaFile={doc.salvaFile} />
+          <InviaMailDialog
+            autoOpen={apriMail}
+            scaricaPdf={doc.esportaPdf}
+            preparaPdf={doc.preparaPdf}
+            dati={{
+              tipoDoc: t.tipo === "nota" ? "Nota onoraria" : "Preavviso di parcella",
+              destinatario: cliente?.email ?? "",
+              ragioneSociale: cliente?.ragione_sociale ?? "",
+              referente: cliente?.referente ?? "",
+              numeroDoc: t.numero,
+              data: t.data,
+              oggetto: t.oggetto,
+              totale: euro(totali.totale),
+              validita: t.scadenza
+                ? new Date(`${t.scadenza}T00:00:00`).toLocaleDateString("it-IT")
+                : "",
+              firma: imp.studio_nome,
+              telefono: imp.studio_tel,
+            }}
+          />
           <Button variant="secondary" onClick={() => salva.mutate()} disabled={salva.isPending}>
             <Save className="size-4" /> Salva
           </Button>
