@@ -136,7 +136,7 @@ function FatturePage() {
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ["fatture"] });
       setOpen(false);
-      navigate({ to: "/fatture/$id", params: { id } });
+      navigate({ to: "/fatture/$id", params: { id }, search: { mail: false } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -279,7 +279,7 @@ function FatturePage() {
               {lista.map((f) => (
                 <TableRow key={f.id} className={classeRigaFattura(f.stato)}>
                   <TableCell className="num font-medium">
-                    <Link to="/fatture/$id" params={{ id: f.id }} className="hover:underline">
+                    <Link to="/fatture/$id" params={{ id: f.id }} search={{ mail: false }} className="hover:underline">
                       {f.numero}
                     </Link>
                   </TableCell>
