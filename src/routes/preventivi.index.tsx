@@ -312,12 +312,29 @@ function PreventiviPage() {
   });
 
   const lista = sorted.filter((p) => filtro === "tutti" || p.stato === filtro);
+  const selezionati = lista.filter((p) => sel.includes(p.id));
+  const stessoCliente =
+    selezionati.length > 1 && selezionati.every((p) => p.cliente_id === selezionati[0].cliente_id);
 
   return (
     <AppShell
       title="Preventivi"
       actions={
         <>
+          {selezionati.length > 1 && (
+            <Button
+              variant={stessoCliente ? "default" : "secondary"}
+              disabled={!stessoCliente || diventaFattura.isPending}
+              title={
+                stessoCliente
+                  ? "Crea un'unica nota onoraria con i preventivi selezionati"
+                  : "I preventivi selezionati devono essere dello stesso cliente"
+              }
+              onClick={() => diventaFattura.mutate(selezionati)}
+            >
+              <ReceiptEuro className="size-4" /> Unisci {selezionati.length} in una fattura
+            </Button>
+          )}
           <Select value={filtro} onValueChange={setFiltro}>
             <SelectTrigger className="w-44">
               <SelectValue />
