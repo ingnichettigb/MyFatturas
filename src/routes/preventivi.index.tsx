@@ -70,7 +70,7 @@ function PreventiviPage() {
   const { data: fatture = [] } = useFatture();
   const { sorted, sort, onSort } = useSort(
     preventivi.map((p) => {
-      const fattura = fatture.find((f) => f.preventivo_id === p.id);
+      const fattura = fatture.find((f) => f.id === p.fattura_id || f.preventivo_id === p.id);
       return {
         ...p,
         clienteNome: clienti.find((c) => c.id === p.cliente_id)?.ragione_sociale ?? "",
@@ -143,21 +143,34 @@ function PreventiviPage() {
   });
 
   const diventaFattura = useMutation({
-    mutationFn: async (p: (typeof sorted)[number]) => {
-      const { data: righe, error: eR } = await supabase
-        .from("preventivo_righe")
-        .select("*")
-        .eq("preventivo_id", p.id)
-        .order("ordinamento");
-      if (eR) throw eR;
-      if (!righe?.length) throw new Error(`Il preventivo ${p.numero} non ha voci da fatturare`);
+    mutationFn: async (lista: (typeof sorted)[number][]) => {
+      if (!lista.length) throw new Error("Seleziona almeno un preventivo");
+      const cliente = lista[0].cliente_id;
+      if (lista.some((p) => p.cliente_id !== cliente))
+        throw new Error("I preventivi selezionati devono essere dello stesso cliente");
+
+      const righePerPrev = await Promise.all(
+        lista.map(async (p) => {
+          const { data, error } = await supabase
+            .from("preventivo_righe")
+            .select("*")
+            .eq("preventivo_id", p.id)
+            .order("ordinamento");
+          if (error) throw error;
+          if (!data?.length) throw new Error(`Il preventivo ${p.numero} non ha voci da fatturare`);
+          return { p, righe: data };
+        }),
+      );
+
+      const multiplo = lista.length > 1;
+      const base = lista[0];
       const data = oggi();
       const bollo = Number(imp?.bollo ?? 0);
-      const tot = calcolaTotali({
-        righe: righe.map((r) => ({ ore: r.ore, prezzo_ora: r.prezzo_ora })),
-        contributoPct: p.contributo_pct,
-        bollo,
-      });
+      const tutte = righePerPrev.flatMap(({ righe }) =>
+        righe.map((r) => ({ ore: r.ore, prezzo_ora: r.prezzo_ora })),
+      );
+      const tot = calcolaTotali({ righe: tutte, contributoPct: base.contributo_pct, bollo });
+
       const { data: fat, error } = await supabase
         .from("fatture")
         .insert({
@@ -166,17 +179,30 @@ function PreventiviPage() {
           anno,
           data,
           scadenza: scadenzaFineMeseSuccessivo(data),
-          cliente_id: p.cliente_id,
-          preventivo_id: p.id,
-          oggetto: p.oggetto,
-          descrizione: p.descrizione,
+          cliente_id: base.cliente_id,
+          preventivo_id: base.id,
+          oggetto: multiplo
+            ? lista
+                .map((p) => `${p.numero}${p.oggetto ? ` — ${p.oggetto}` : ""}`)
+                .join(" / ")
+                .slice(0, 300)
+            : base.oggetto,
+          descrizione: multiplo
+            ? lista
+                .map((p) => p.descrizione)
+                .filter(Boolean)
+                .join("\n")
+            : base.descrizione,
           premessa:
             "Per le prestazioni professionali di seguito indicate, Vi rimetto la presente nota onoraria.",
-          numero_ordine: p.numero_ordine,
-          data_ordine: p.data_ordine,
-          tariffa_oraria: p.tariffa_oraria,
-          sconto_pct: p.sconto_pct,
-          contributo_pct: p.contributo_pct,
+          numero_ordine: lista
+            .map((p) => p.numero_ordine)
+            .filter(Boolean)
+            .join(" / "),
+          data_ordine: base.data_ordine,
+          tariffa_oraria: base.tariffa_oraria,
+          sconto_pct: base.sconto_pct,
+          contributo_pct: base.contributo_pct,
           bollo,
           totale_ore: tot.ore,
           imponibile: tot.imponibile,
@@ -186,24 +212,37 @@ function PreventiviPage() {
         .select("id")
         .single();
       if (error) throw error;
+
+      let ord = 0;
       const ins = await supabase.from("fattura_righe").insert(
-        righe.map((r, i) => ({
-          fattura_id: fat.id,
-          commessa_id: p.commessa_id,
-          descrizione: r.descrizione,
-          ore: n(r.ore),
-          prezzo_ora: n(r.prezzo_ora),
-          importo: round2(n(r.ore) * n(r.prezzo_ora)),
-          ordinamento: i,
-        })),
+        righePerPrev.flatMap(({ p, righe }) =>
+          righe.map((r) => ({
+            fattura_id: fat.id,
+            commessa_id: p.commessa_id,
+            descrizione: multiplo ? `[${p.numero}] ${r.descrizione}` : r.descrizione,
+            ore: n(r.ore),
+            prezzo_ora: n(r.prezzo_ora),
+            importo: round2(n(r.ore) * n(r.prezzo_ora)),
+            ordinamento: ord++,
+          })),
+        ),
       );
       if (ins.error) throw ins.error;
-      await supabase.from("preventivi").update({ stato: "fatturato" }).eq("id", p.id);
+
+      const upd = await supabase
+        .from("preventivi")
+        .update({ stato: "fatturato", fattura_id: fat.id })
+        .in(
+          "id",
+          lista.map((p) => p.id),
+        );
+      if (upd.error) throw upd.error;
       return fat.id;
     },
     onSuccess: (fid) => {
       qc.invalidateQueries({ queryKey: ["fatture"] });
       qc.invalidateQueries({ queryKey: ["preventivi"] });
+      setSel([]);
       toast.success("Nota onoraria creata");
       navigate({ to: "/fatture/$id", params: { id: fid }, search: { mail: false } });
     },
