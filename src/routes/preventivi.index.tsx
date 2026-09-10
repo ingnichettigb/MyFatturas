@@ -96,6 +96,7 @@ function PreventiviPage() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [filtro, setFiltro] = useState("tutti");
+  const [sel, setSel] = useState<string[]>([]);
   const anno = new Date().getFullYear();
   const [form, setForm] = useState({ numero: "", cliente_id: "", commessa_id: "", oggetto: "" });
 
