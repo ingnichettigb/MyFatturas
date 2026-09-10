@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -359,6 +360,13 @@ function PreventiviPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={lista.length > 0 && sel.length === lista.length}
+                    onCheckedChange={(v) => setSel(v ? lista.map((p) => p.id) : [])}
+                    aria-label="Seleziona tutti"
+                  />
+                </TableHead>
                 <SortableHead label="Numero" sortKey="numero" sort={sort} onSort={onSort} />
                 <SortableHead label="Data" sortKey="data" sort={sort} onSort={onSort} />
                 <SortableHead label="Cliente" sortKey="cliente" sort={sort} onSort={onSort} />
@@ -396,11 +404,20 @@ function PreventiviPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sorted.map((p) => (
+              {lista.map((p) => (
                 <TableRow
                   key={p.id}
                   className={`cursor-pointer ${classeRigaPreventivo(p.stato, p.numero_ordine)}`}
                 >
+                  <TableCell>
+                    <Checkbox
+                      checked={sel.includes(p.id)}
+                      onCheckedChange={(v) =>
+                        setSel((s) => (v ? [...s, p.id] : s.filter((x) => x !== p.id)))
+                      }
+                      aria-label={`Seleziona ${p.numero}`}
+                    />
+                  </TableCell>
                   <TableCell className="num font-medium">
                     <Link to="/preventivi/$id" params={{ id: p.id }} search={{ mail: false }} className="hover:underline">
                       {p.numero}
