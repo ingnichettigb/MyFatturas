@@ -395,6 +395,7 @@ export type Database = {
           data: string
           data_ordine: string | null
           descrizione: string
+          fattura_id: string | null
           id: string
           imponibile: number
           note: string
@@ -421,6 +422,7 @@ export type Database = {
           data?: string
           data_ordine?: string | null
           descrizione?: string
+          fattura_id?: string | null
           id?: string
           imponibile?: number
           note?: string
@@ -447,6 +449,7 @@ export type Database = {
           data?: string
           data_ordine?: string | null
           descrizione?: string
+          fattura_id?: string | null
           id?: string
           imponibile?: number
           note?: string
@@ -475,6 +478,13 @@ export type Database = {
             columns: ["commessa_id"]
             isOneToOne: false
             referencedRelation: "commesse"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventivi_fattura_id_fkey"
+            columns: ["fattura_id"]
+            isOneToOne: false
+            referencedRelation: "fatture"
             referencedColumns: ["id"]
           },
         ]
