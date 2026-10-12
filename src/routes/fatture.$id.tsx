@@ -1,13 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Printer, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Printer, Save, Stamp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { RigheEditor, type RigaForm } from "@/components/RigheEditor";
 import { DocumentoStampa } from "@/components/DocumentoStampa";
 import { AzioniDocumento, useDocumento } from "@/hooks/useDocumento";
 import { InviaMailDialog } from "@/components/InviaMailDialog";
+import { EmettiFatturaDialog } from "@/components/EmettiFatturaDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useClienti, useImpostazioni } from "@/lib/queries";
+import { useClienti, useFatture, useImpostazioni } from "@/lib/queries";
 import {
   calcolaTotali,
   euro,
@@ -80,6 +81,8 @@ function FatturaDetail() {
   });
 
   const [t, setT] = useState<Fattura | null>(null);
+  const [emetti, setEmetti] = useState(false);
+  const { data: tutte = [] } = useFatture();
   const doc = useDocumento(() =>
     t ? `${t.tipo === "nota" ? "Nota onoraria" : "Preavviso"} ${t.numero}` : "Documento",
   );
@@ -200,6 +203,17 @@ function FatturaDetail() {
               <ArrowLeft className="size-4" /> Elenco
             </Link>
           </Button>
+          {t.stato === "bozza" ? (
+            <Button
+              onClick={async () => {
+                await salva.mutateAsync();
+                setEmetti(true);
+              }}
+              disabled={salva.isPending}
+            >
+              <Stamp className="size-4" /> Emetti fattura
+            </Button>
+          ) : null}
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="size-4" /> Stampa
           </Button>
@@ -230,6 +244,12 @@ function FatturaDetail() {
         </>
       }
     >
+      <EmettiFatturaDialog
+        bozza={t}
+        fatture={tutte}
+        open={emetti}
+        onOpenChange={setEmetti}
+      />
       <Tabs value={doc.tab} onValueChange={doc.setTab}>
         <TabsList className="no-print">
           <TabsTrigger value="dati">Compilazione</TabsTrigger>
