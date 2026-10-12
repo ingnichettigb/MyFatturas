@@ -147,7 +147,7 @@ function PreventiviPage() {
   const diventaFattura = useMutation({
     mutationFn: async (lista: (typeof sorted)[number][]) => {
       if (!lista.length) throw new Error("Seleziona almeno un preventivo");
-      const cliente = lista[0].cliente_id;
+      const cliente = lista[0]!.cliente_id;
       if (lista.some((p) => p.cliente_id !== cliente))
         throw new Error("I preventivi selezionati devono essere dello stesso cliente");
 
@@ -165,7 +165,7 @@ function PreventiviPage() {
       );
 
       const multiplo = lista.length > 1;
-      const base = lista[0];
+      const base = lista[0]!;
       const data = oggi();
       const bollo = Number(imp?.bollo ?? 0);
       const tutte = righePerPrev.flatMap(({ righe }) =>
@@ -315,7 +315,7 @@ function PreventiviPage() {
   const lista = sorted.filter((p) => filtro === "tutti" || p.stato === filtro);
   const selezionati = lista.filter((p) => sel.includes(p.id));
   const stessoCliente =
-    selezionati.length > 1 && selezionati.every((p) => p.cliente_id === selezionati[0].cliente_id);
+    selezionati.length > 1 && selezionati.every((p) => p.cliente_id === selezionati[0]!.cliente_id);
 
   return (
     <AppShell
@@ -457,7 +457,7 @@ function PreventiviPage() {
                         size="icon"
                         title="Diventa fattura"
                         disabled={diventaFattura.isPending}
-                        onClick={() => diventaFattura.mutate(p)}
+                        onClick={() => diventaFattura.mutate([p])}
                       >
                         <ReceiptEuro className="size-4" />
                       </Button>
@@ -502,7 +502,7 @@ function PreventiviPage() {
               ))}
               {!lista.length && (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
                     {isLoading ? "Caricamento…" : "Nessun preventivo."}
                   </TableCell>
                 </TableRow>
