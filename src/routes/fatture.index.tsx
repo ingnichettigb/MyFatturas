@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Copy, Eye, Plus, Send, Trash2 } from "lucide-react";
+import { Copy, Eye, FolderOpen, Plus, Send, Stamp, Trash2 } from "lucide-react";
+import { EmettiFatturaDialog } from "@/components/EmettiFatturaDialog";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ import {
   labelStato,
   oggi,
   prossimoNumero,
+  prossimoNumeroBozza,
   scadenzaFineMeseSuccessivo,
   STATI_FATTURA,
 } from "@/lib/ngb";
@@ -86,9 +88,12 @@ function FatturePage() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [filtro, setFiltro] = useState("tutti");
+  const [daEmettere, setDaEmettere] = useState<(typeof fatture)[number] | null>(null);
+  const nBozze = fatture.filter((f) => f.stato === "bozza").length;
   const anno = new Date().getFullYear();
   const [form, setForm] = useState({
     tipo: "nota" as "nota" | "preavviso",
+    bozza: true,
     numero: "",
     cliente_id: "",
     oggetto: "",
@@ -97,7 +102,8 @@ function FatturePage() {
   function apri() {
     setForm({
       tipo: "nota",
-      numero: prossimoNumero("nota", anno, fatture),
+      bozza: true,
+      numero: prossimoNumeroBozza(fatture),
       cliente_id: "",
       oggetto: "",
     });
@@ -119,6 +125,7 @@ function FatturePage() {
           scadenza: scadenzaFineMeseSuccessivo(data),
           cliente_id: form.cliente_id,
           oggetto: form.oggetto,
+          stato: form.bozza ? "bozza" : "da_inviare",
           tariffa_oraria: Number(imp?.tariffa_oraria ?? 24),
           sconto_pct: Number(imp?.sconto_pct ?? 0),
           contributo_pct: Number(imp?.contributo_pct ?? 5),
@@ -145,7 +152,7 @@ function FatturePage() {
 
   const duplica = useMutation({
     mutationFn: async (orig: (typeof lista)[number]) => {
-      const numero = prossimoNumero(orig.tipo as "nota" | "preavviso", anno, fatture);
+      const numero = prossimoNumeroBozza(fatture);
       const dataDoc = oggi();
       const { data: copia, error } = await supabase
         .from("fatture")
@@ -169,7 +176,7 @@ function FatturePage() {
           imponibile: orig.imponibile,
           contributo: orig.contributo,
           totale: orig.totale,
-          stato: "da_inviare",
+          stato: "bozza",
         })
         .select("id")
         .single();
@@ -222,6 +229,12 @@ function FatturePage() {
       title="Note onorarie"
       actions={
         <>
+          <Button
+            variant={filtro === "bozza" ? "default" : "outline"}
+            onClick={() => setFiltro(filtro === "bozza" ? "tutti" : "bozza")}
+          >
+            <FolderOpen className="size-4" /> Bozze ({nBozze})
+          </Button>
           <Select value={filtro} onValueChange={setFiltro}>
             <SelectTrigger className="w-44">
               <SelectValue />
@@ -306,6 +319,17 @@ function FatturePage() {
                           <Eye className="size-4" />
                         </Link>
                       </Button>
+                      {f.stato === "bozza" ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Emetti fattura"
+                          aria-label="Emetti fattura"
+                          onClick={() => setDaEmettere(f)}
+                        >
+                          <Stamp className="size-4" />
+                        </Button>
+                      ) : null}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -355,6 +379,17 @@ function FatturePage() {
         </CardContent>
       </Card>
 
+      {daEmettere ? (
+        <EmettiFatturaDialog
+          bozza={daEmettere}
+          fatture={fatture}
+          open={!!daEmettere}
+          onOpenChange={(v) => !v && setDaEmettere(null)}
+          onEmessa={(id) =>
+            navigate({ to: "/fatture/$id", params: { id }, search: { mail: true } })
+          }
+        />
+      ) : null}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -372,7 +407,9 @@ function FatturePage() {
                   setForm({
                     ...form,
                     tipo: v as "nota" | "preavviso",
-                    numero: prossimoNumero(v as "nota" | "preavviso", anno, fatture),
+                    numero: form.bozza
+                      ? prossimoNumeroBozza(fatture)
+                      : prossimoNumero(v as "nota" | "preavviso", anno, fatture),
                   })
                 }
               >
@@ -385,6 +422,22 @@ function FatturePage() {
                 </SelectContent>
               </Select>
             </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.bozza}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    bozza: e.target.checked,
+                    numero: e.target.checked
+                      ? prossimoNumeroBozza(fatture)
+                      : prossimoNumero(form.tipo, anno, fatture),
+                  })
+                }
+              />
+              Salva come bozza (numero definitivo assegnato all'emissione)
+            </label>
             <div className="space-y-1.5">
               <Label htmlFor="numero">Numero</Label>
               <Input

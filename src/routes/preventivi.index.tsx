@@ -39,6 +39,7 @@ import {
   numero,
   oggi,
   prossimoNumero,
+  prossimoNumeroBozza,
   round2,
   scadenzaFineMeseSuccessivo,
   STATI_PREVENTIVO,
@@ -177,7 +178,8 @@ function PreventiviPage() {
         .from("fatture")
         .insert({
           tipo: "nota",
-          numero: prossimoNumero("nota", anno, fatture),
+          numero: prossimoNumeroBozza(fatture),
+          stato: "bozza",
           anno,
           data,
           scadenza: scadenzaFineMeseSuccessivo(data),
