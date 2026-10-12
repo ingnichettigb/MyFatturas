@@ -29,6 +29,7 @@ import {
   n,
   oggi,
   prossimoNumero,
+  prossimoNumeroBozza,
   round2,
   scadenzaFineMeseSuccessivo,
   STATI_PREVENTIVO,
@@ -194,7 +195,8 @@ function PreventivoDetail() {
         .from("fatture")
         .insert({
           tipo,
-          numero: prossimoNumero(tipo, anno, fatture),
+          numero: tipo === "nota" ? prossimoNumeroBozza(fatture) : prossimoNumero(tipo, anno, fatture),
+          stato: tipo === "nota" ? "bozza" : "da_inviare",
           anno,
           data,
           scadenza: scadenzaFineMeseSuccessivo(data),

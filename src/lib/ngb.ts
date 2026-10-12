@@ -110,12 +110,31 @@ export function prossimoNumero(
     return `PRE-${aa}-${String(max + 1).padStart(2, "0")}`;
   }
   const max = esistenti
-    .filter((e) => e.anno === anno)
+    .filter((e) => e.anno === anno && !isNumeroBozza(e.numero))
+    .filter((e) => (tipo === "nota" ? !/^P\d/i.test(e.numero) : /^P\d/i.test(e.numero)))
     .reduce((m, e) => Math.max(m, progressivoDa(e.numero)), 0);
   const p = String(max + 1).padStart(2, "0");
   if (tipo === "nota") return `${p}/${aa}`;
   return `P${aa}/${p}`;
 }
+
+export const isNumeroBozza = (numero: string) => /^bozza-/i.test(numero.trim());
+
+/** Numero provvisorio delle bozze: Bozza-001, Bozza-002… (continuo). */
+export function prossimoNumeroBozza(esistenti: { numero: string }[]): string {
+  const max = esistenti.reduce((m, e) => {
+    const match = e.numero.match(/^bozza-(\d+)/i);
+    return match ? Math.max(m, Number(match[1])) : m;
+  }, 0);
+  return `Bozza-${String(max + 1).padStart(3, "0")}`;
+}
+
+/** Normalizza un numero fattura per confronto duplicati (es. "FPR 2/26" ≈ "02/26"). */
+export function chiaveNumero(numero: string): string {
+  const nums = numero.match(/\d+/g);
+  return nums ? nums.map((x) => String(Number(x))).join("/") : numero.trim().toLowerCase();
+}
+
 
 
 export const STATI_PREVENTIVO = [
@@ -127,6 +146,7 @@ export const STATI_PREVENTIVO = [
 ] as const;
 
 export const STATI_FATTURA = [
+  { value: "bozza", label: "Bozza" },
   { value: "da_inviare", label: "Da inviare" },
   { value: "inviata", label: "Inviata" },
   { value: "pagata", label: "Pagata" },
