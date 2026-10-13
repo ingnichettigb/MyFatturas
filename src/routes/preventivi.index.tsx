@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Copy, Eye, Plus, ReceiptEuro, Send, Trash2 } from "lucide-react";
+import { Copy, Eye, FilePen, Plus, ReceiptEuro, Send, Trash2 } from "lucide-react";
+import { EmettiFatturaDialog } from "@/components/EmettiFatturaDialog";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,7 @@ function PreventiviPage() {
   const [open, setOpen] = useState(false);
   const [filtro, setFiltro] = useState("tutti");
   const [sel, setSel] = useState<string[]>([]);
+  const [daEmettere, setDaEmettere] = useState<{ id: string; numero: string; tipo: string; data: string } | null>(null);
   const anno = new Date().getFullYear();
   const [form, setForm] = useState({ numero: "", cliente_id: "", commessa_id: "", oggetto: "" });
 
@@ -146,7 +148,7 @@ function PreventiviPage() {
   });
 
   const diventaFattura = useMutation({
-    mutationFn: async (lista: (typeof sorted)[number][]) => {
+    mutationFn: async ({ lista, bozza: soloBozza }: { lista: (typeof sorted)[number][]; bozza: boolean }) => {
       if (!lista.length) throw new Error("Seleziona almeno un preventivo");
       const cliente = lista[0]!.cliente_id;
       if (lista.some((p) => p.cliente_id !== cliente))
@@ -241,14 +243,18 @@ function PreventiviPage() {
           lista.map((p) => p.id),
         );
       if (upd.error) throw upd.error;
-      return fat.id;
+      return { id: fat.id as string, numero: prossimoNumeroBozza(fatture), data, soloBozza };
     },
-    onSuccess: (fid) => {
+    onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: ["fatture"] });
       qc.invalidateQueries({ queryKey: ["preventivi"] });
       setSel([]);
-      toast.success("Nota onoraria creata");
-      navigate({ to: "/fatture/$id", params: { id: fid }, search: { mail: false } });
+      if (r.soloBozza) {
+        toast.success(`Bozza ${r.numero} creata nella cartella Bozze`);
+        navigate({ to: "/fatture/$id", params: { id: r.id }, search: { mail: false } });
+      } else {
+        setDaEmettere({ id: r.id, numero: r.numero, tipo: "nota", data: r.data });
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -333,9 +339,18 @@ function PreventiviPage() {
                   ? "Crea un'unica nota onoraria con i preventivi selezionati"
                   : "I preventivi selezionati devono essere dello stesso cliente"
               }
-              onClick={() => diventaFattura.mutate(selezionati)}
+              onClick={() => diventaFattura.mutate({ lista: selezionati, bozza: false })}
             >
               <ReceiptEuro className="size-4" /> Unisci {selezionati.length} in una fattura
+            </Button>
+          )}
+          {selezionati.length > 1 && (
+            <Button
+              variant="outline"
+              disabled={!stessoCliente || diventaFattura.isPending}
+              onClick={() => diventaFattura.mutate({ lista: selezionati, bozza: true })}
+            >
+              <FilePen className="size-4" /> Unisci {selezionati.length} in una bozza
             </Button>
           )}
           <Select value={filtro} onValueChange={setFiltro}>
@@ -459,9 +474,18 @@ function PreventiviPage() {
                         size="icon"
                         title="Diventa fattura"
                         disabled={diventaFattura.isPending}
-                        onClick={() => diventaFattura.mutate([p])}
+                        onClick={() => diventaFattura.mutate({ lista: [p], bozza: false })}
                       >
                         <ReceiptEuro className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Diventa bozza"
+                        disabled={diventaFattura.isPending}
+                        onClick={() => diventaFattura.mutate({ lista: [p], bozza: true })}
+                      >
+                        <FilePen className="size-4" />
                       </Button>
                       <Button asChild variant="ghost" size="icon" title="Vedi">
                         <Link to="/preventivi/$id" params={{ id: p.id }} search={{ mail: false }}>
@@ -514,6 +538,15 @@ function PreventiviPage() {
         </CardContent>
       </Card>
 
+      {daEmettere ? (
+        <EmettiFatturaDialog
+          bozza={daEmettere as never}
+          fatture={fatture}
+          open={!!daEmettere}
+          onOpenChange={(v) => !v && setDaEmettere(null)}
+          onEmessa={(id) => navigate({ to: "/fatture/$id", params: { id }, search: { mail: true } })}
+        />
+      ) : null}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
