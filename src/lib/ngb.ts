@@ -234,12 +234,12 @@ export function parseStringaCommessa(raw: string): DatiStringaCommessa | null {
   let nrFabbrica = "";
 
   for (let i = 3; i < parti.length; i++) {
-    const p = parti[i];
+    const p = parti[i] ?? "";
     if (/^dis\b/i.test(p)) {
       disegno = p.replace(/^dis\s*/i, "").trim();
     } else if (/^nr\b/i.test(p)) {
       if (/^nr$/i.test(p) && i + 1 < parti.length) {
-        nrFabbrica = parti[i + 1].trim();
+        nrFabbrica = (parti[i + 1] ?? "").trim();
         i++;
       } else {
         nrFabbrica = p.replace(/^nr\s*[-_:]?\s*/i, "").trim();
