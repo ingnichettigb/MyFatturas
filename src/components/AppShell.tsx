@@ -7,6 +7,7 @@ import {
   FileText,
   ReceiptEuro,
   Settings,
+  ListOrdered,
   LogOut,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ const NAV = [
   { to: "/commesse", label: "Commesse", icon: Boxes },
   { to: "/preventivi", label: "Preventivi", icon: FileText },
   { to: "/fatture", label: "Note onorarie", icon: ReceiptEuro },
+  { to: "/listino", label: "Listino prezzi", icon: ListOrdered },
   { to: "/impostazioni", label: "Impostazioni", icon: Settings },
 ];
 
