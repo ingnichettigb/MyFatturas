@@ -6,6 +6,11 @@ export type RigaStampa = {
   posizione?: string;
   descrizione: string;
   ore: number | string;
+  /** Tariffa base €/h (lorda, prima dello sconto) */
+  tariffa?: number | string | null;
+  /** Sconto % applicato alla riga */
+  sconto_pct?: number | string | null;
+  /** Netto €/h (dopo lo sconto) */
   prezzo_ora: number | string;
   importo: number | string;
 };
@@ -96,21 +101,31 @@ export function DocumentoStampa({
           <tr className="border-y border-paper-foreground/40 text-left">
             <th className="w-[8mm] py-1.5 font-semibold">Pos.</th>
             <th className="py-1.5 font-semibold">Descrizione</th>
-            <th className="w-[18mm] py-1.5 text-right font-semibold">Ore</th>
-            <th className="w-[24mm] py-1.5 text-right font-semibold">€/ora</th>
-            <th className="w-[28mm] py-1.5 text-right font-semibold">Importo</th>
+            <th className="w-[13mm] py-1.5 text-right font-semibold">Ore</th>
+            <th className="w-[20mm] py-1.5 text-right font-semibold">Tariffa €/h</th>
+            <th className="w-[15mm] py-1.5 text-right font-semibold">Sconto</th>
+            <th className="w-[20mm] py-1.5 text-right font-semibold">Netto €/h</th>
+            <th className="w-[24mm] py-1.5 text-right font-semibold">Importo</th>
           </tr>
         </thead>
         <tbody>
-          {righe.map((r, i) => (
-            <tr key={r.id} className="border-b border-paper-foreground/15 align-top">
-              <td className="py-1.5">{r.posizione || String(i + 1).padStart(3, "0")}</td>
-              <td className="py-1.5 whitespace-pre-wrap">{r.descrizione}</td>
-              <td className="py-1.5 text-right num">{numero(r.ore)}</td>
-              <td className="py-1.5 text-right num">{euro(r.prezzo_ora)}</td>
-              <td className="py-1.5 text-right num">{euro(r.importo)}</td>
-            </tr>
-          ))}
+          {righe.map((r, i) => {
+            const sconto = Number(r.sconto_pct ?? 0) || 0;
+            const tariffaBase = r.tariffa != null && Number(r.tariffa) > 0 ? r.tariffa : r.prezzo_ora;
+            return (
+              <tr key={r.id} className="border-b border-paper-foreground/15 align-top">
+                <td className="py-1.5">{r.posizione || String(i + 1).padStart(3, "0")}</td>
+                <td className="py-1.5 whitespace-pre-wrap">{r.descrizione}</td>
+                <td className="py-1.5 text-right num">{numero(r.ore)}</td>
+                <td className="py-1.5 text-right num">{euro(tariffaBase)}</td>
+                <td className="py-1.5 text-right num">
+                  {sconto > 0 ? `${numero(sconto, Number.isInteger(sconto) ? 0 : 1)}%` : "—"}
+                </td>
+                <td className="py-1.5 text-right num">{euro(r.prezzo_ora)}</td>
+                <td className="py-1.5 text-right num">{euro(r.importo)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
