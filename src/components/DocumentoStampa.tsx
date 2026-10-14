@@ -29,6 +29,7 @@ export function DocumentoStampa({
   scadenza,
   riferimenti,
   mostraFiscale,
+  testoFisso,
 }: {
   imp: Impostazioni;
   cliente: Cliente | null;
@@ -43,6 +44,8 @@ export function DocumentoStampa({
   scadenza?: string | null;
   riferimenti?: { label: string; value: string }[];
   mostraFiscale: boolean;
+  /** Testo fisso non modificabile mostrato sotto i totali (es. preventivo). */
+  testoFisso?: string;
 }) {
   return (
     <article className="sheet-a4 text-[11pt] leading-snug">
@@ -165,6 +168,8 @@ export function DocumentoStampa({
           </tbody>
         </table>
       </div>
+
+      {testoFisso ? <p className="mt-4 text-[9.5pt] font-semibold">{testoFisso}</p> : null}
 
       <div className="mt-6 space-y-1 text-[9pt] text-paper-foreground/80">
         <p>{imp.testo_franchigia}</p>
