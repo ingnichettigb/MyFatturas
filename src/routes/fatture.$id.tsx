@@ -96,6 +96,8 @@ function FatturaDetail() {
         id: r.id,
         descrizione: r.descrizione,
         ore: String(r.ore),
+        tariffa: String(r.tariffa ?? r.prezzo_ora),
+        sconto_pct: String(r.sconto_pct ?? 0),
         prezzo_ora: String(r.prezzo_ora),
       })),
     );
@@ -153,6 +155,8 @@ function FatturaDetail() {
             fattura_id: id,
             descrizione: r.descrizione,
             ore: n(r.ore),
+            tariffa: n(r.tariffa ?? r.prezzo_ora),
+            sconto_pct: n(r.sconto_pct),
             prezzo_ora: n(r.prezzo_ora),
             importo: round2(n(r.ore) * n(r.prezzo_ora)),
             ordinamento: i,
@@ -416,7 +420,7 @@ function FatturaDetail() {
               </CardTitle>
               <div className="flex flex-wrap items-end gap-3">
                 <div className="space-y-1">
-                  <Label className="label-tec">Tariffa €/h</Label>
+                  <Label className="label-tec">Tariffa base €/h</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -426,7 +430,7 @@ function FatturaDetail() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="label-tec">Sconto %</Label>
+                  <Label className="label-tec">Sconto base %</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -435,16 +439,15 @@ function FatturaDetail() {
                     onChange={(e) => set({ sconto_pct: Number(e.target.value) })}
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="label-tec">Cassa %</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    className="num h-9 w-24"
-                    value={String(t.contributo_pct)}
-                    onChange={(e) => set({ contributo_pct: Number(e.target.value) })}
+                <label className="flex h-9 cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 text-sm">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-primary"
+                    checked={Number(t.contributo_pct) > 0}
+                    onChange={(e) => set({ contributo_pct: e.target.checked ? 5 : 0 })}
                   />
-                </div>
+                  Usa cassa {Number(t.contributo_pct) > 0 ? `(${Number(t.contributo_pct)}%)` : ""}
+                </label>
                 <div className="space-y-1">
                   <Label className="label-tec">Bollo €</Label>
                   <Input
@@ -462,6 +465,8 @@ function FatturaDetail() {
                     setRighe(
                       righe.map((r) => ({
                         ...r,
+                        tariffa: String(t.tariffa_oraria),
+                        sconto_pct: String(t.sconto_pct),
                         prezzo_ora: String(
                           tariffaNetta(Number(t.tariffa_oraria), Number(t.sconto_pct)),
                         ),
@@ -469,7 +474,7 @@ function FatturaDetail() {
                     )
                   }
                 >
-                  Applica tariffa netta (
+                  Allinea tutte le righe (
                   {euro(tariffaNetta(Number(t.tariffa_oraria), Number(t.sconto_pct)))})
                 </Button>
               </div>
@@ -478,6 +483,8 @@ function FatturaDetail() {
               <RigheEditor
                 righe={righe}
                 onChange={setRighe}
+                tariffaDefault={Number(t.tariffa_oraria)}
+                scontoDefault={Number(t.sconto_pct)}
                 prezzoDefault={tariffaNetta(Number(t.tariffa_oraria), Number(t.sconto_pct))}
               />
               <div className="mt-4 flex justify-end">
