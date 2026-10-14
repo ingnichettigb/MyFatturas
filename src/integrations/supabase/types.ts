@@ -132,6 +132,8 @@ export type Database = {
           ordinamento: number
           ore: number
           prezzo_ora: number
+          sconto_pct: number
+          tariffa: number | null
         }
         Insert: {
           commessa_id?: string | null
@@ -143,6 +145,8 @@ export type Database = {
           ordinamento?: number
           ore?: number
           prezzo_ora?: number
+          sconto_pct?: number
+          tariffa?: number | null
         }
         Update: {
           commessa_id?: string | null
@@ -154,6 +158,8 @@ export type Database = {
           ordinamento?: number
           ore?: number
           prezzo_ora?: number
+          sconto_pct?: number
+          tariffa?: number | null
         }
         Relationships: [
           {
@@ -549,6 +555,8 @@ export type Database = {
           preventivo_id: string
           prezzo_ora: number
           quantita: number
+          sconto_pct: number
+          tariffa: number | null
         }
         Insert: {
           created_at?: string
@@ -561,6 +569,8 @@ export type Database = {
           preventivo_id: string
           prezzo_ora?: number
           quantita?: number
+          sconto_pct?: number
+          tariffa?: number | null
         }
         Update: {
           created_at?: string
@@ -573,6 +583,8 @@ export type Database = {
           preventivo_id?: string
           prezzo_ora?: number
           quantita?: number
+          sconto_pct?: number
+          tariffa?: number | null
         }
         Relationships: [
           {

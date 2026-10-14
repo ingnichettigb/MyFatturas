@@ -8,6 +8,13 @@
       "when": 1791986337912,
       "tag": "0000_listino_prezzi",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791987270288,
+      "tag": "0001_righe_tariffa_sconto",
+      "breakpoints": true
     }
   ]
 }
