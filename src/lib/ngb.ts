@@ -135,8 +135,6 @@ export function chiaveNumero(numero: string): string {
   return nums ? nums.map((x) => String(Number(x))).join("/") : numero.trim().toLowerCase();
 }
 
-
-
 export const STATI_PREVENTIVO = [
   { value: "bozza", label: "Bozza" },
   { value: "inviato", label: "Inviato" },
@@ -200,3 +198,70 @@ export const indirizzoCliente = (c: Cliente | null | undefined) =>
         .filter(Boolean)
         .join(" — ")
     : "";
+
+/** Struttura dei dati decodificati da una stringa C.O. */
+export interface DatiStringaCommessa {
+  co: string;               // es. "N0436A"
+  clienteFinale: string;    // es. "FERRERO MESSICO"
+  oggettoApparecchio: string;// es. "FB-I 35 m³"
+  disegno: string;          // es. "26.097.P"
+  nrFabbrica: string;       // es. "1471/26"
+  oggettoCompleto: string;  // es. "CO_N0436A_FERRERO MESSICO_FB-I 35 m³_dis 26.097.P_Nr_1471/26"
+}
+
+/**
+ * Decodifica una stringa C.O. nel formato:
+ * "N0436A_FERRERO MESSICO_FB-I 35 m³_dis 26.097.P_Nr_1471/26"
+ * ("N° C.O._rif Cliente_Oggetto_dis N° Dis._Nr_n° Fabbrica")
+ */
+export function parseStringaCommessa(raw: string): DatiStringaCommessa | null {
+  const t = raw.trim();
+  if (!t) return null;
+
+  let pulito = t;
+  if (/^co_/i.test(pulito)) {
+    pulito = pulito.slice(3).trim();
+  }
+
+  const parti = pulito.split("_").map((p) => p.trim());
+  if (parti.length < 3) return null;
+
+  const co = parti[0] || "";
+  const clienteFinale = parti[1] || "";
+  const oggettoApparecchio = parti[2] || "";
+
+  let disegno = "";
+  let nrFabbrica = "";
+
+  for (let i = 3; i < parti.length; i++) {
+    const p = parti[i];
+    if (/^dis\b/i.test(p)) {
+      disegno = p.replace(/^dis\s*/i, "").trim();
+    } else if (/^nr\b/i.test(p)) {
+      if (/^nr$/i.test(p) && i + 1 < parti.length) {
+        nrFabbrica = parti[i + 1].trim();
+        i++;
+      } else {
+        nrFabbrica = p.replace(/^nr\s*[-_:]?\s*/i, "").trim();
+      }
+    } else if (!disegno) {
+      disegno = p;
+    } else if (!nrFabbrica) {
+      nrFabbrica = p;
+    }
+  }
+
+  const coPrefissato = co.toUpperCase().startsWith("CO_") ? co.toUpperCase() : `CO_${co.toUpperCase()}`;
+  const disParte = disegno ? `_dis ${disegno}` : "";
+  const nrParte = nrFabbrica ? `_Nr_${nrFabbrica}` : "";
+  const oggettoCompleto = `${coPrefissato}_${clienteFinale}_${oggettoApparecchio}${disParte}${nrParte}`;
+
+  return {
+    co: co.toUpperCase(),
+    clienteFinale,
+    oggettoApparecchio,
+    disegno,
+    nrFabbrica,
+    oggettoCompleto,
+  };
+}
