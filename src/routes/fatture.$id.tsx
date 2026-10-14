@@ -549,6 +549,8 @@ function FatturaDetail() {
               posizione: String(i + 1).padStart(3, "0"),
               descrizione: r.descrizione,
               ore: r.ore,
+              tariffa: r.tariffa ?? r.prezzo_ora,
+              sconto_pct: r.sconto_pct ?? 0,
               prezzo_ora: r.prezzo_ora,
               importo: round2(n(r.ore) * n(r.prezzo_ora)),
             }))}
