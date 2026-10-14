@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { euro, n, round2 } from "@/lib/ngb";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export type RigaForm = {
   id: string;
@@ -23,6 +25,36 @@ export function RigheEditor({
   prezzoDefault: number;
   conPosizione?: boolean;
 }) {
+  const { data: listino = [] } = useQuery({
+    queryKey: ["listino"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("listino_prezzi").select("*").order("ordinamento");
+      if (error) throw error;
+      return data;
+    },
+  });
+  const addListino = (id: string) => {
+    const v = listino.find((x) => x.id === id);
+    if (!v) return;
+    let q = Number(v.ore);
+    if (v.incrementabile) {
+      const label = v.codice.startsWith("PED") ? "Numero serbatoi" : `Quantità (${v.unita})`;
+      const r = window.prompt(`${v.codice} — ${label}:`, "1");
+      if (r === null) return;
+      const k = n(r.replace(",", ".")) || 1;
+      q = v.codice.startsWith("PED") ? round2(Number(v.ore) * k) : k;
+    }
+    onChange([
+      ...righe,
+      {
+        id: crypto.randomUUID(),
+        posizione: "",
+        descrizione: `${v.codice} ${v.descrizione}${v.quantita_rif ? " " + v.quantita_rif : ""}`.trim(),
+        ore: String(q),
+        prezzo_ora: String(v.prezzo ?? prezzoDefault),
+      },
+    ]);
+  };
   const upd = (id: string, patch: Partial<RigaForm>) =>
     onChange(righe.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 
@@ -122,6 +154,18 @@ export function RigheEditor({
       >
         <Plus className="size-4" /> Aggiungi voce
       </Button>
+      <select
+        className="ml-2 h-9 rounded-md border border-input bg-background px-2 text-sm"
+        value=""
+        onChange={(e) => addListino(e.target.value)}
+      >
+        <option value="">+ Da listino…</option>
+        {listino.map((v) => (
+          <option key={v.id} value={v.id}>
+            {v.codice} — {v.descrizione} {v.quantita_rif} ({v.prezzo != null ? `${v.prezzo} €/${v.unita}` : `${v.ore} h`})
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

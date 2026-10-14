@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ClientiRouteImport } from './routes/clienti'
 import { Route as CommesseRouteImport } from './routes/commesse'
 import { Route as ImpostazioniRouteImport } from './routes/impostazioni'
+import { Route as ListinoRouteImport } from './routes/listino'
 import { Route as FattureIndexRouteImport } from './routes/fatture.index'
 import { Route as FattureIdRouteImport } from './routes/fatture.$id'
 import { Route as PreventiviIndexRouteImport } from './routes/preventivi.index'
@@ -44,6 +45,11 @@ const ImpostazioniRoute = ImpostazioniRouteImport.update({
   path: '/impostazioni',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListinoRoute = ListinoRouteImport.update({
+  id: '/listino',
+  path: '/listino',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FattureIndexRoute = FattureIndexRouteImport.update({
   id: '/fatture/',
   path: '/fatture/',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/clienti': typeof ClientiRoute
   '/commesse': typeof CommesseRoute
   '/impostazioni': typeof ImpostazioniRoute
+  '/listino': typeof ListinoRoute
   '/fatture/$id': typeof FattureIdRoute
   '/preventivi/$id': typeof PreventiviIdRoute
   '/fatture/': typeof FattureIndexRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/clienti': typeof ClientiRoute
   '/commesse': typeof CommesseRoute
   '/impostazioni': typeof ImpostazioniRoute
+  '/listino': typeof ListinoRoute
   '/fatture/$id': typeof FattureIdRoute
   '/preventivi/$id': typeof PreventiviIdRoute
   '/fatture': typeof FattureIndexRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/clienti': typeof ClientiRoute
   '/commesse': typeof CommesseRoute
   '/impostazioni': typeof ImpostazioniRoute
+  '/listino': typeof ListinoRoute
   '/fatture/$id': typeof FattureIdRoute
   '/preventivi/$id': typeof PreventiviIdRoute
   '/fatture/': typeof FattureIndexRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/clienti'
     | '/commesse'
     | '/impostazioni'
+    | '/listino'
     | '/fatture/$id'
     | '/preventivi/$id'
     | '/fatture/'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/clienti'
     | '/commesse'
     | '/impostazioni'
+    | '/listino'
     | '/fatture/$id'
     | '/preventivi/$id'
     | '/fatture'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/clienti'
     | '/commesse'
     | '/impostazioni'
+    | '/listino'
     | '/fatture/$id'
     | '/preventivi/$id'
     | '/fatture/'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   ClientiRoute: typeof ClientiRoute
   CommesseRoute: typeof CommesseRoute
   ImpostazioniRoute: typeof ImpostazioniRoute
+  ListinoRoute: typeof ListinoRoute
   FattureIdRoute: typeof FattureIdRoute
   PreventiviIdRoute: typeof PreventiviIdRoute
   FattureIndexRoute: typeof FattureIndexRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImpostazioniRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/listino': {
+      id: '/listino'
+      path: '/listino'
+      fullPath: '/listino'
+      preLoaderRoute: typeof ListinoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fatture/': {
       id: '/fatture/'
       path: '/fatture'
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientiRoute: ClientiRoute,
   CommesseRoute: CommesseRoute,
   ImpostazioniRoute: ImpostazioniRoute,
+  ListinoRoute: ListinoRoute,
   FattureIdRoute: FattureIdRoute,
   PreventiviIdRoute: PreventiviIdRoute,
   FattureIndexRoute: FattureIndexRoute,
