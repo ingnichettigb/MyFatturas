@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Copy, Eye, FilePen, Plus, ReceiptEuro, Send, Trash2 } from "lucide-react";
+import { Copy, Eye, FilePen, Plus, ReceiptEuro, Send, Trash2, Wand2 } from "lucide-react";
 import { EmettiFatturaDialog } from "@/components/EmettiFatturaDialog";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -39,11 +39,13 @@ import {
   n,
   numero,
   oggi,
+  parseStringaCommessa,
   prossimoNumero,
   prossimoNumeroBozza,
   round2,
   scadenzaFineMeseSuccessivo,
   STATI_PREVENTIVO,
+  type DatiStringaCommessa,
 } from "@/lib/ngb";
 
 export const Route = createFileRoute("/preventivi/")({
@@ -103,8 +105,33 @@ function PreventiviPage() {
   const [daEmettere, setDaEmettere] = useState<{ id: string; numero: string; tipo: string; data: string } | null>(null);
   const anno = new Date().getFullYear();
   const [form, setForm] = useState({ numero: "", cliente_id: "", commessa_id: "", oggetto: "" });
+  const [stringaRapida, setStringaRapida] = useState("");
+  const [datiEstratti, setDatiEstratti] = useState<DatiStringaCommessa | null>(null);
+
+  function applicaStringa(val: string) {
+    setStringaRapida(val);
+    const parsed = parseStringaCommessa(val);
+    setDatiEstratti(parsed);
+    if (!parsed) return;
+
+    // Seleziona Azzini come cliente se presente e non ancora selezionato
+    const azzini = clienti.find((c) => /azzini/i.test(c.ragione_sociale));
+    const targetClienteId = form.cliente_id || azzini?.id || "";
+
+    // Cerca se esiste già la commessa con questo codice C.O.
+    const commEsistente = commesse.find((c) => c.codice.toUpperCase() === parsed.co.toUpperCase());
+
+    setForm((f) => ({
+      ...f,
+      cliente_id: targetClienteId || f.cliente_id,
+      commessa_id: commEsistente?.id || f.commessa_id,
+      oggetto: parsed.oggettoCompleto,
+    }));
+  }
 
   function apri() {
+    setStringaRapida("");
+    setDatiEstratti(null);
     setForm({
       numero: prossimoNumero("preventivo", anno, preventivi),
       cliente_id: "",
@@ -118,6 +145,36 @@ function PreventiviPage() {
     mutationFn: async () => {
       if (!form.numero.trim()) throw new Error("Indica il numero del preventivo");
       if (!form.cliente_id) throw new Error("Seleziona il cliente");
+
+      let commessaId = form.commessa_id;
+
+      // Se abbiamo estratto i dati da stringa rapida e la commessa non esiste ancora, la creiamo
+      if (datiEstratti && (!commessaId || commessaId === "nessuna")) {
+        const commEsistente = commesse.find(
+          (c) => c.codice.toUpperCase() === datiEstratti.co.toUpperCase(),
+        );
+        if (commEsistente) {
+          commessaId = commEsistente.id;
+        } else {
+          const { data: newComm, error: errC } = await supabase
+            .from("commesse")
+            .insert({
+              codice: datiEstratti.co,
+              cliente_id: form.cliente_id || null,
+              descrizione: `${datiEstratti.clienteFinale}${
+                datiEstratti.oggettoApparecchio ? ` — ${datiEstratti.oggettoApparecchio}` : ""
+              }`,
+              disegno: datiEstratti.disegno,
+              note: datiEstratti.nrFabbrica ? `Matricola Fabbrica: ${datiEstratti.nrFabbrica}` : "",
+            })
+            .select("id")
+            .single();
+          if (errC) throw errC;
+          commessaId = newComm.id;
+          qc.invalidateQueries({ queryKey: ["commesse"] });
+        }
+      }
+
       const { data, error } = await supabase
         .from("preventivi")
         .insert({
@@ -125,7 +182,7 @@ function PreventiviPage() {
           anno,
           data: oggi(),
           cliente_id: form.cliente_id,
-          commessa_id: form.commessa_id || null,
+          commessa_id: commessaId || null,
           oggetto: form.oggetto,
           tariffa_oraria: Number(imp?.tariffa_oraria ?? 24),
           sconto_pct: Number(imp?.sconto_pct ?? 0),
@@ -548,14 +605,45 @@ function PreventiviPage() {
         />
       ) : null}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>Nuovo preventivo</DialogTitle>
             <DialogDescription>
-              Il numero è proposto automaticamente ma resta sempre modificabile.
+              Compila i dati manualmente oppure incolla la stringa C.O. per l'estrazione automatica.
             </DialogDescription>
           </DialogHeader>
+
           <div className="space-y-4">
+            {/* Campo rapido facoltativo stringa C.O. */}
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="stringaRapida" className="flex items-center gap-1.5 font-medium text-xs uppercase tracking-wide text-primary">
+                  <Wand2 className="size-3.5" /> Incolla stringa rapida C.O. (facoltativo)
+                </Label>
+                {datiEstratti && (
+                  <Badge variant="outline" className="text-[10px] bg-background text-primary border-primary/40">
+                    Stringa riconosciuta
+                  </Badge>
+                )}
+              </div>
+              <Input
+                id="stringaRapida"
+                value={stringaRapida}
+                onChange={(e) => applicaStringa(e.target.value)}
+                placeholder="Es. N0436A_FERRERO MESSICO_FB-I 35 m³_dis 26.097.P_Nr_1471/26"
+                className="bg-background text-sm font-mono"
+              />
+              {datiEstratti && (
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs pt-1 border-t border-border/50 text-muted-foreground">
+                  <div><span className="font-medium text-foreground">C.O.:</span> {datiEstratti.co}</div>
+                  <div><span className="font-medium text-foreground">Cliente rif.:</span> {datiEstratti.clienteFinale}</div>
+                  <div><span className="font-medium text-foreground">Modello:</span> {datiEstratti.oggettoApparecchio || "—"}</div>
+                  <div><span className="font-medium text-foreground">Disegno:</span> {datiEstratti.disegno || "—"}</div>
+                  <div className="col-span-2"><span className="font-medium text-foreground">N° Fabbrica:</span> {datiEstratti.nrFabbrica || "—"}</div>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="numero">Numero preventivo</Label>
               <Input
@@ -593,7 +681,7 @@ function PreventiviPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="nessuna">Nessuna</SelectItem>
+                  <SelectItem value="nessuna">Nessuna (o crea automaticamente da C.O.)</SelectItem>
                   {commesse.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.codice} — {c.descrizione || "senza descrizione"}
