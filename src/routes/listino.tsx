@@ -37,7 +37,7 @@ function ListinoPage() {
   const refresh = () => qc.invalidateQueries({ queryKey: ["listino"] });
 
   const save = async (id: string, patch: Record<string, unknown>) => {
-    const { error } = await supabase.from("listino_prezzi").update(patch).eq("id", id);
+    const { error } = await supabase.from("listino_prezzi").update(patch as never).eq("id", id);
     if (error) toast.error(error.message);
     else refresh();
   };
