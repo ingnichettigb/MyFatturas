@@ -383,6 +383,54 @@ export type Database = {
         }
         Relationships: []
       }
+      listino_prezzi: {
+        Row: {
+          codice: string
+          created_at: string
+          descrizione: string
+          gruppo: string
+          id: string
+          incrementabile: boolean
+          note: string
+          ordinamento: number
+          ore: number
+          prezzo: number | null
+          quantita_rif: string
+          unita: string
+          updated_at: string
+        }
+        Insert: {
+          codice: string
+          created_at?: string
+          descrizione?: string
+          gruppo?: string
+          id?: string
+          incrementabile?: boolean
+          note?: string
+          ordinamento?: number
+          ore?: number
+          prezzo?: number | null
+          quantita_rif?: string
+          unita?: string
+          updated_at?: string
+        }
+        Update: {
+          codice?: string
+          created_at?: string
+          descrizione?: string
+          gruppo?: string
+          id?: string
+          incrementabile?: boolean
+          note?: string
+          ordinamento?: number
+          ore?: number
+          prezzo?: number | null
+          quantita_rif?: string
+          unita?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       preventivi: {
         Row: {
           anno: number
