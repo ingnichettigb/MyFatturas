@@ -102,14 +102,18 @@ function PreventivoDetail() {
     );
   }, [data]);
 
+  // Nel preventivo il contributo è escluso se la modalità è "solo in fattura".
+  const contributoPctPrev =
+    t?.cassa_modo === "solo_fattura" ? 0 : Number(t?.contributo_pct ?? 5);
+
   const totali = useMemo(
     () =>
       calcolaTotali({
         righe: righe.map((r) => ({ ore: r.ore, prezzo_ora: r.prezzo_ora })),
-        contributoPct: t?.contributo_pct ?? 5,
+        contributoPct: contributoPctPrev,
         bollo: t?.bollo ?? 0,
       }),
-    [righe, t?.contributo_pct, t?.bollo],
+    [righe, contributoPctPrev, t?.bollo],
   );
 
   const salva = useMutation({
@@ -134,6 +138,7 @@ function PreventivoDetail() {
           tariffa_oraria: t.tariffa_oraria,
           sconto_pct: t.sconto_pct,
           contributo_pct: t.contributo_pct,
+          cassa_modo: t.cassa_modo,
           bollo: t.bollo,
           totale_ore: totali.ore,
           imponibile: totali.imponibile,
@@ -486,15 +491,24 @@ function PreventivoDetail() {
                     onChange={(e) => set({ sconto_pct: Number(e.target.value) })}
                   />
                 </div>
-                <label className="flex h-9 cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 text-sm">
-                  <input
-                    type="checkbox"
-                    className="size-4 accent-primary"
-                    checked={Number(t.contributo_pct) > 0}
-                    onChange={(e) => set({ contributo_pct: e.target.checked ? 5 : 0 })}
-                  />
-                  Usa cassa {Number(t.contributo_pct) > 0 ? `(${Number(t.contributo_pct)}%)` : ""}
-                </label>
+                <div className="space-y-1">
+                  <Label className="label-tec">Cassa</Label>
+                  <select
+                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    value={t.cassa_modo}
+                    onChange={(e) => {
+                      const modo = e.target.value;
+                      set({
+                        cassa_modo: modo,
+                        contributo_pct: modo === "mai" ? 0 : Number(imp?.contributo_pct ?? 5),
+                      });
+                    }}
+                  >
+                    <option value="sempre">Usa cassa in tutto</option>
+                    <option value="mai">Non usare cassa</option>
+                    <option value="solo_fattura">Usa cassa ma non nel preventivo</option>
+                  </select>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
@@ -537,7 +551,10 @@ function PreventivoDetail() {
                     </tr>
                     <tr>
                       <td className="py-1 pr-6 text-muted-foreground">
-                        Contributo cassa {Number(t.contributo_pct)}%
+                        Contributo cassa {contributoPctPrev}%
+                        {t.cassa_modo === "solo_fattura"
+                          ? ` (in fattura: ${Number(t.contributo_pct)}%)`
+                          : ""}
                       </td>
                       <td className="py-1 text-right">{euro(totali.contributo)}</td>
                     </tr>
@@ -576,7 +593,6 @@ function PreventivoDetail() {
             premessa={t.premessa}
             descrizione={t.descrizione}
             mostraFiscale={false}
-            testoFisso="Le quotazioni sopra indicate non sono comprensive delle componenti accessorie obbligatorie, che verranno aggiunte all'atto della fatturazione."
             righe={righe.map((r, i) => ({
               id: r.id,
               posizione: r.posizione || String(i + 1).padStart(3, "0"),

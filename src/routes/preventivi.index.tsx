@@ -187,6 +187,7 @@ function PreventiviPage() {
           tariffa_oraria: Number(imp?.tariffa_oraria ?? 24),
           sconto_pct: Number(imp?.sconto_pct ?? 0),
           contributo_pct: Number(imp?.contributo_pct ?? 5),
+          cassa_modo: Number(imp?.contributo_pct ?? 5) > 0 ? "sempre" : "mai",
           bollo: 0,
           premessa:
             "In riferimento alla Vs. richiesta, sottopongo alla Vs. attenzione il preventivo per le prestazioni tecniche di seguito descritte.",
@@ -332,6 +333,7 @@ function PreventiviPage() {
           tariffa_oraria: p.tariffa_oraria,
           sconto_pct: p.sconto_pct,
           contributo_pct: p.contributo_pct,
+          cassa_modo: p.cassa_modo,
           bollo: p.bollo,
           validita: p.validita,
           stato: "bozza",

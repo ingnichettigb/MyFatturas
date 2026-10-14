@@ -439,15 +439,21 @@ function FatturaDetail() {
                     onChange={(e) => set({ sconto_pct: Number(e.target.value) })}
                   />
                 </div>
-                <label className="flex h-9 cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 text-sm">
-                  <input
-                    type="checkbox"
-                    className="size-4 accent-primary"
-                    checked={Number(t.contributo_pct) > 0}
-                    onChange={(e) => set({ contributo_pct: e.target.checked ? 5 : 0 })}
-                  />
-                  Usa cassa {Number(t.contributo_pct) > 0 ? `(${Number(t.contributo_pct)}%)` : ""}
-                </label>
+                <div className="space-y-1">
+                  <Label className="label-tec">Cassa</Label>
+                  <select
+                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    value={Number(t.contributo_pct) > 0 ? "usa" : "no"}
+                    onChange={(e) =>
+                      set({
+                        contributo_pct: e.target.value === "usa" ? Number(imp?.contributo_pct ?? 5) : 0,
+                      })
+                    }
+                  >
+                    <option value="usa">Usa cassa ({Number(imp?.contributo_pct ?? 5)}%)</option>
+                    <option value="no">Non usare cassa</option>
+                  </select>
+                </div>
                 <div className="space-y-1">
                   <Label className="label-tec">Bollo €</Label>
                   <Input
