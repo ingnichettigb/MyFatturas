@@ -445,6 +445,7 @@ export type Database = {
           commessa_id: string | null
           contributo: number
           contributo_pct: number
+          cassa_modo: string
           created_at: string
           data: string
           data_ordine: string | null
@@ -472,6 +473,7 @@ export type Database = {
           commessa_id?: string | null
           contributo?: number
           contributo_pct?: number
+          cassa_modo?: string
           created_at?: string
           data?: string
           data_ordine?: string | null
@@ -499,6 +501,7 @@ export type Database = {
           commessa_id?: string | null
           contributo?: number
           contributo_pct?: number
+          cassa_modo?: string
           created_at?: string
           data?: string
           data_ordine?: string | null
