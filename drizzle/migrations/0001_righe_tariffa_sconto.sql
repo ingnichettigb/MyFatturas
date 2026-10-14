@@ -1,0 +1,2 @@
+ALTER TABLE public.preventivo_righe ADD COLUMN IF NOT EXISTS tariffa numeric, ADD COLUMN IF NOT EXISTS sconto_pct numeric NOT NULL DEFAULT 0;
+ALTER TABLE public.fattura_righe ADD COLUMN IF NOT EXISTS tariffa numeric, ADD COLUMN IF NOT EXISTS sconto_pct numeric NOT NULL DEFAULT 0;
