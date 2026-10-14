@@ -123,12 +123,14 @@ export function DocumentoStampa({
               </td>
               <td className="py-0.5 pl-6 text-right num">{euro(totali.imponibile)}</td>
             </tr>
+            {totali.contributo > 0 ? (
             <tr>
-              <td className="py-0.5">
-                {numero(imp.contributo_pct, 0)}% Contributo Integrativo di cassa (A)
-              </td>
-              <td className="py-0.5 pl-6 text-right num">+ {euro(totali.contributo)}</td>
-            </tr>
+                <td className="py-0.5">
+                  {numero(imp.contributo_pct, 0)}% Contributo Integrativo di cassa (A)
+                </td>
+                <td className="py-0.5 pl-6 text-right num">+ {euro(totali.contributo)}</td>
+              </tr>
+            ) : null}
             {totali.bollo > 0 ? (
               <tr>
                 <td className="py-0.5">{imp.testo_spese_anticipate} (D)</td>
