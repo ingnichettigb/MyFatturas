@@ -576,6 +576,7 @@ function PreventivoDetail() {
             premessa={t.premessa}
             descrizione={t.descrizione}
             mostraFiscale={false}
+            testoFisso="Le quotazioni sopra indicate non sono comprensive delle componenti accessorie obbligatorie, che verranno aggiunte all'atto della fatturazione."
             righe={righe.map((r, i) => ({
               id: r.id,
               posizione: r.posizione || String(i + 1).padStart(3, "0"),
